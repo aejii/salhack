@@ -9,9 +9,12 @@ import static org.lwjgl.opengl.GL11.glHint;
 import static org.lwjgl.opengl.GL11.glLineWidth;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 
 import me.ionar.salhack.events.MinecraftEvent.Era;
+import me.ionar.salhack.events.client.EventClientTick;
 import me.ionar.salhack.events.player.EventPlayerMotionUpdate;
 import me.ionar.salhack.events.player.EventPlayerUpdate;
 import me.ionar.salhack.events.render.EventRenderLayers;
@@ -40,8 +43,7 @@ import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
@@ -50,6 +52,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import org.lwjgl.util.vector.Vector2f;
 
 public class AutoBuilderModule extends Module
 {
@@ -58,9 +61,11 @@ public class AutoBuilderModule extends Module
     public final Value<Integer> BlocksPerTick = new Value<Integer>("BlocksPerTick", new String[] {"BPT"}, "Blocks per tick", 4, 1, 10, 1);
     public final Value<Float> Delay = new Value<Float>("Delay", new String[] {"Delay"}, "Delay of the place", 0f, 0.0f, 1.0f, 0.1f);
     public final Value<Boolean> Visualize = new Value<Boolean>("Visualize", new String[] {"Render"}, "Visualizes where blocks are to be placed", true);
+    public final Value<Boolean> ObsidianOnly = new Value<Boolean>("ObsidianOnly", new String[] {""}, "Will only build when player is holding obsidian", true);
     
     public enum Modes
     {
+        NEOWHighway,
         Highway,
         Swastika,
         HighwayTunnel,
@@ -96,11 +101,11 @@ public class AutoBuilderModule extends Module
     {
         super.onEnable();
         
-        if (mc.player == null)
-        {
-            toggle();
-            return;
-        }
+        //if (mc.player == null)
+        //{
+        //    toggle();
+        //    return;
+        //}
         
         timer.reset();
         SourceBlock = null;
@@ -128,6 +133,14 @@ public class AutoBuilderModule extends Module
     @EventHandler
     private Listener<EventPlayerMotionUpdate> OnPlayerUpdate = new Listener<>(p_Event ->
     {
+        if (mc.player == null) {
+            return;
+        }
+
+        if (ObsidianOnly.getValue() && Item.getIdFromItem(mc.player.getHeldItemMainhand().getItem()) != Item.getIdFromItem(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
+            return;
+        }
+
         if (p_Event.getEra() != Era.PRE)
             return;
         
@@ -179,6 +192,16 @@ public class AutoBuilderModule extends Module
                 
                 int l_BlocksPerTick = BlocksPerTick.getValue();
 
+                // Sort the block array so it tries to place closest blocks first
+                if (mc.player == null) {
+                    return;
+                }
+                BlockPos playerPos = mc.player.getPosition();
+                BlockArray.sort((o1, o2) -> {
+                    double dist1 = playerPos.getDistance(o1.getX(), o1.getY(), o1.getZ());
+                    double dist2 = playerPos.getDistance(o2.getX(), o2.getY(), o2.getZ());
+                    return Double.compare(dist1, dist2);
+                });
                 for (BlockPos l_Pos : BlockArray)
                 {
                     /*ValidResult l_Result = BlockInteractionHelper.valid(l_Pos);
@@ -432,6 +455,94 @@ public class AutoBuilderModule extends Module
         
         switch (Mode.getValue())
         {
+            case NEOWHighway:
+                BlockPos newOriginPos = getClosestPoint(new Vector2f(-1, 0), new Vector2f(1, -1), new Vector2f(orignPos.getX(), orignPos.getZ()));
+
+                BlockArray.add(newOriginPos);
+                BlockArray.add(newOriginPos.north());
+                BlockArray.add(newOriginPos.north().west());
+                BlockArray.add(newOriginPos.north().east());
+                BlockArray.add(newOriginPos.west());
+                BlockArray.add(newOriginPos.east());
+                BlockArray.add(newOriginPos.south());
+                BlockArray.add(newOriginPos.south().west());
+                BlockArray.add(newOriginPos.south().east());
+
+                // Front 1
+                BlockArray.add(newOriginPos.north().north());
+                BlockArray.add(newOriginPos.north().north().east());
+                BlockArray.add(newOriginPos.north().north().east().east());
+                BlockArray.add(newOriginPos.north().north().east().east().south());
+                BlockArray.add(newOriginPos.north().north().east().east().south().south());
+
+                // Front 2
+                BlockArray.add(newOriginPos.north().north().east().north());
+                BlockArray.add(newOriginPos.north().north().east().north().east());
+                BlockArray.add(newOriginPos.north().north().east().north().east().east());
+                BlockArray.add(newOriginPos.north().north().east().north().east().east().south());
+                BlockArray.add(newOriginPos.north().north().east().north().east().east().south().south());
+
+                // Front 3
+                BlockArray.add(newOriginPos.north().north().east().north().east().north());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().east());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().east().south());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().east().south().south());
+
+                // Front 4
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north().east());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north().east().east());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north().east().east().south());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north().east().east().south().south());
+
+                // Front 5
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north().east().north());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north().east().north().east());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north().east().north().east().east());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north().east().north().east().east().south());
+                BlockArray.add(newOriginPos.north().north().east().north().east().north().east().north().east().north().east().east().south().south());
+                // Get 2nd one and add north to it
+                // then 2 east and 2 south
+
+                // Back 1
+                BlockArray.add(newOriginPos.west().west());
+                BlockArray.add(newOriginPos.west().west().south());
+                BlockArray.add(newOriginPos.west().west().south().south());
+                BlockArray.add(newOriginPos.west().west().south().south().east());
+                BlockArray.add(newOriginPos.west().west().south().south().east().east());
+
+                // Back 2
+                BlockArray.add(newOriginPos.west().west().south().west());
+                BlockArray.add(newOriginPos.west().west().south().west().south());
+                BlockArray.add(newOriginPos.west().west().south().west().south().south());
+                BlockArray.add(newOriginPos.west().west().south().west().south().south().east());
+                BlockArray.add(newOriginPos.west().west().south().west().south().south().east().east());
+
+                // Back 3
+                BlockArray.add(newOriginPos.west().west().south().west().south().west());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().south());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().south().east());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().south().east().east());
+
+                // Back 4
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west().south());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west().south().south());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west().south().south().east());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west().south().south().east().east());
+
+                // Back 5
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west().south().west());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west().south().west().south());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west().south().west().south().south());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west().south().west().south().south().east());
+                BlockArray.add(newOriginPos.west().west().south().west().south().west().south().west().south().west().south().south().east().east());
+                // Grab 2nd one and add west to it
+                // Then 2 souths on that
+                // and 2 east on that
+                break;
             case Highway:
                 switch (PlayerUtil.GetFacing())
                 {
@@ -852,14 +963,16 @@ public class AutoBuilderModule extends Module
 
     private Pair<Integer, Block> findStackHotbar()
     {
-        if (mc.player.getHeldItemMainhand().getItem() instanceof ItemBlock)
+        if ((ObsidianOnly.getValue() && Item.getIdFromItem(mc.player.getHeldItemMainhand().getItem()) == Item.getIdFromItem(Item.getItemFromBlock(Blocks.OBSIDIAN))) ||
+                (!ObsidianOnly.getValue() && mc.player.getHeldItemMainhand().getItem() instanceof ItemBlock)) {
             return new Pair<Integer, Block>(mc.player.inventory.currentItem, ((ItemBlock)mc.player.getHeldItemMainhand().getItem()).getBlock());
+        }
         
         for (int i = 0; i < 9; i++)
         {
             final ItemStack stack = Minecraft.getMinecraft().player.inventory.getStackInSlot(i);
-            if (stack.getItem() instanceof ItemBlock)
-            {
+            if ((ObsidianOnly.getValue() && Item.getIdFromItem(stack.getItem()) == Item.getIdFromItem(Item.getItemFromBlock(Blocks.OBSIDIAN))) ||
+                    (!ObsidianOnly.getValue() && stack.getItem() instanceof ItemBlock)) {
                 final ItemBlock block = (ItemBlock) stack.getItem();
                 
                 return new Pair<Integer, Block>(i, block.getBlock());
@@ -875,6 +988,27 @@ public class AutoBuilderModule extends Module
         double z = Math.floor(posZ) + 0.5D ;
         
         return new Vec3d(x, y, z);
+    }
+
+    private BlockPos getClosestPoint(Vector2f origin, Vector2f direction, Vector2f point) {
+        // https://stackoverflow.com/a/51906100
+        direction.normalise();
+        Vector2f lhs = Vector2f.sub(point, origin, null);
+
+        float dotP = Vector2f.dot(lhs, direction);
+        Vector2f closestPos = Vector2f.add(origin, (Vector2f) direction.scale(dotP), null);
+
+        int iClosestPosX = (int) closestPos.x;
+        int iClosestPosY = (int) closestPos.y;
+
+        int absX = Math.abs(iClosestPosX);
+        int absY = Math.abs(iClosestPosY);
+
+        if ((absX + Math.abs(origin.x)) == (absY + Math.abs(origin.y))) {
+            return new BlockPos(iClosestPosX, 99, iClosestPosY);
+        } else {
+            return new BlockPos(absY + origin.x, 99, -absY);
+        }
     }
 
     /// Verifies the array is all obsidian
