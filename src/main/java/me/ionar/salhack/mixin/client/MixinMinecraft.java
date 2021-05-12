@@ -1,5 +1,6 @@
 package me.ionar.salhack.mixin.client;
 
+import me.ionar.salhack.events.minecraft.WorldLoadEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
@@ -117,4 +118,11 @@ public class MixinMinecraft
         info.cancel();
     }
 
+    @Inject(method = "loadWorld", at = @At("HEAD"))
+    public void loadWorld(WorldClient worldClientIn, CallbackInfo info) {
+        WorldLoadEvent loadEvent = new WorldLoadEvent(worldClientIn);
+        SalHackMod.EVENT_BUS.post(loadEvent);
+
+        //info.cancel();
+    }
 }

@@ -179,6 +179,7 @@ public class ModuleManager
         Add(new StashLoggerModule());
         Add(new TimerModule());
         Add(new TorchAnnihilatorModule());
+        Add(new InstantMineModule());
         
         /// Schematica
         Add(new PrinterModule());

@@ -62,9 +62,13 @@ public class AutoBuilderModule extends Module
     public final Value<Float> Delay = new Value<Float>("Delay", new String[] {"Delay"}, "Delay of the place", 0f, 0.0f, 1.0f, 0.1f);
     public final Value<Boolean> Visualize = new Value<Boolean>("Visualize", new String[] {"Render"}, "Visualizes where blocks are to be placed", true);
     public final Value<Boolean> ObsidianOnly = new Value<Boolean>("ObsidianOnly", new String[] {""}, "Will only build when player is holding obsidian", true);
-    
+    public final Value<Integer> XOffset = new Value<Integer>("XOffset", new String[] {""}, "Custom Nether Highway X Offset, leave at -69 for defaults", -69, -69, Integer.MAX_VALUE, 1);
+    public final Value<Integer> ZOffset = new Value<Integer>("ZOffset", new String[] {""}, "Custom Nether Highway Z Offset, leave at -69 for defaults", -69, -69, Integer.MAX_VALUE, 1);
+
     public enum Modes
     {
+        CHBXHighway,
+        CHBZHighway,
         NEOWHighway,
         Highway,
         Swastika,
@@ -455,8 +459,52 @@ public class AutoBuilderModule extends Module
         
         switch (Mode.getValue())
         {
+            case CHBXHighway: {
+                int xOff = XOffset.getValue() == -69 ? 0 : XOffset.getValue();
+                int ZOff = ZOffset.getValue() == -69 ? 2 : ZOffset.getValue();
+                BlockPos newOriginPos = getClosestPoint(new Vec3d(xOff, 0, ZOff), new Vec3d(1, 0, 0), new Vec3d(orignPos.getX(), orignPos.getY(), orignPos.getZ()));
+                for (int i = 0; i < 7; i++) {
+                    BlockArray.add(newOriginPos.add(i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(1).add(i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(2).add(i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(3).add(i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(4).add(i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(5).up().add(i, 0, 0));
+
+                    BlockArray.add(newOriginPos.add(-i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(1).add(-i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(2).add(-i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(3).add(-i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(4).add(-i, 0, 0));
+                    BlockArray.add(newOriginPos.down().north(5).up().add(-i, 0, 0));
+                }
+                break;
+            }
+
+            case CHBZHighway: {
+                int xOff = XOffset.getValue() == -69 ? 2 : XOffset.getValue();
+                int ZOff = ZOffset.getValue() == -69 ? 0 : ZOffset.getValue();
+                BlockPos newOriginPos = getClosestPoint(new Vec3d(xOff, 0, ZOff), new Vec3d(0, 0, 1), new Vec3d(orignPos.getX(), orignPos.getY(), orignPos.getZ()));
+                for (int i = 0; i < 7; i++) {
+                    BlockArray.add(newOriginPos.add(0, 0, i));
+                    BlockArray.add(newOriginPos.down().west(1).add(0, 0, i));
+                    BlockArray.add(newOriginPos.down().west(2).add(0, 0, i));
+                    BlockArray.add(newOriginPos.down().west(3).add(0, 0, i));
+                    BlockArray.add(newOriginPos.down().west(4).add(0, 0, i));
+                    BlockArray.add(newOriginPos.down().west(5).up().add(0, 0, i));
+
+                    BlockArray.add(newOriginPos.add(0, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(1).add(0, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(2).add(0, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(3).add(0, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(4).add(0, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(5).up().add(0, 0, -i));
+                }
+                break;
+            }
+
             case NEOWHighway:
-                BlockPos newOriginPos = getClosestPoint(new Vector2f(-1, 0), new Vector2f(1, -1), new Vector2f(orignPos.getX(), orignPos.getZ()));
+                BlockPos newOriginPos = getClosestPoint(new Vec3d(-1, 0, 0), new Vec3d(1, 0, -1), new Vec3d(orignPos.getX(), orignPos.getY(), orignPos.getZ()));
 
                 BlockArray.add(newOriginPos);
                 BlockArray.add(newOriginPos.north());
@@ -990,7 +1038,43 @@ public class AutoBuilderModule extends Module
         return new Vec3d(x, y, z);
     }
 
-    private BlockPos getClosestPoint(Vector2f origin, Vector2f direction, Vector2f point) {
+    private BlockPos getClosestPoint(Vec3d origin, Vec3d direction, Vec3d point) {
+        int yLevel = 99;
+        if (this.Mode.getValue() == Modes.CHBXHighway || this.Mode.getValue() == Modes.CHBZHighway) {
+            yLevel = 120;
+        }
+
+        Vec3d directBackup = new Vec3d(direction.x, direction.y, direction.z);
+
+        boolean diag = direction.x != 0 && direction.z != 0;
+        direction.normalize();
+
+        Vec3d lhs = point.subtract(origin);
+        double dotP = lhs.dotProduct(direction);
+        Vec3d scaled = direction.scale(dotP);
+        Vec3d closestPos =  origin.add(scaled);
+
+        int iClosestPosX = (int) closestPos.x;
+        int iClosestPosZ = (int) closestPos.z;
+
+        if (directBackup.x == 0) {
+            iClosestPosX = (int) origin.x;
+        }
+        else if (directBackup.z == 0) {
+            iClosestPosZ = (int) origin.z;
+        }
+
+        if (diag) {
+            int absX = Math.abs(iClosestPosX);
+            int absY = Math.abs(iClosestPosZ);
+            if ((absX + Math.abs(origin.x)) == (absY + Math.abs(origin.z))) {
+                return new BlockPos(iClosestPosX, yLevel, iClosestPosZ);
+            } else {
+                return new BlockPos((absY + origin.x) * directBackup.x, yLevel, (absY + origin.z) * directBackup.z);
+            }
+        }
+        return new BlockPos(iClosestPosX, yLevel, iClosestPosZ);
+        /*
         // https://stackoverflow.com/a/51906100
         direction.normalise();
         Vector2f lhs = Vector2f.sub(point, origin, null);
@@ -1004,11 +1088,14 @@ public class AutoBuilderModule extends Module
         int absX = Math.abs(iClosestPosX);
         int absY = Math.abs(iClosestPosY);
 
+
+
         if ((absX + Math.abs(origin.x)) == (absY + Math.abs(origin.y))) {
-            return new BlockPos(iClosestPosX, 99, iClosestPosY);
+            return new BlockPos(iClosestPosX, yLevel, iClosestPosY);
         } else {
-            return new BlockPos(absY + origin.x, 99, -absY);
+            return new BlockPos(absY + origin.x, yLevel, -absY);
         }
+         */
     }
 
     /// Verifies the array is all obsidian

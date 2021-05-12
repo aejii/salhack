@@ -1,18 +1,23 @@
 package me.ionar.salhack.module.world;
 
 import java.awt.Color;
+import java.util.Objects;
 
-import me.ionar.salhack.events.player.EventPlayerClickBlock;
-import me.ionar.salhack.events.player.EventPlayerDamageBlock;
-import me.ionar.salhack.events.player.EventPlayerResetBlockRemoving;
-import me.ionar.salhack.events.player.EventPlayerUpdate;
+import akka.io.Udp;
+import me.ionar.salhack.events.client.EventClientTick;
+import me.ionar.salhack.events.minecraft.WorldLoadEvent;
+import me.ionar.salhack.events.player.*;
 import me.ionar.salhack.module.Module;
 import me.ionar.salhack.module.Value;
+import me.ionar.salhack.util.Timer;
 import me.zero.alpine.fork.listener.EventHandler;
 import me.zero.alpine.fork.listener.Listener;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.client.network.NetworkPlayerInfo;
+import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
@@ -36,6 +41,15 @@ public final class SpeedyGonzales extends Module
     public final Value<Boolean> FastFall = new Value<Boolean>("FastFall", new String[]
     { "FF" }, "Makes it so you fall faster.", false);
 
+    private Timer timer = new Timer();
+    private int worldLoads = 0;
+    private boolean customPause = false;
+
+    private boolean slowMode = false;
+    private int slowSpeedMs = 200;
+    private Timer slowModeTimer = new Timer();
+    private Timer slowModeRunningTime = new Timer();
+
     public SpeedyGonzales()
     {
         super("SpeedyGonzales", new String[]
@@ -49,8 +63,60 @@ public final class SpeedyGonzales extends Module
     }
 
     @EventHandler
+    private Listener<WorldLoadEvent> onWorldLoad = new Listener<>(p_Event -> {
+        if (p_Event.Client != null) {
+            if (worldLoads == 0) {
+                timer.reset();
+            }
+            worldLoads++;
+        }
+
+    });
+
+    @EventHandler
+    private Listener<EventClientTick> onTick = new Listener<>(p_Event -> {
+        // Been 30 minutes and mod is disabled, so enable it
+       if ((timer.passed(1800000) && customPause) || (slowModeRunningTime.passed(1800000) && slowMode)) {
+           timer.reset();
+           customPause = false;
+           slowMode = false;
+           worldLoads = 0;
+           SendMessage("It has been 30 minutes. Resuming this module.");
+           //this.toggle();
+       }
+
+
+        // In 120 seconds there have been 3 world loads
+        if (!timer.passed(120000) && worldLoads >= 3 && !customPause) {
+            timer.reset();
+            worldLoads = 0;
+            //this.toggle();
+            if (slowMode) {
+                customPause = true;
+                SendMessage("There have been 3 world loads in less than 120 seconds. Pausing this module for 30 minutes.");
+            } else {
+                slowMode = true;
+                slowModeRunningTime.reset();
+                SendMessage("Trying slower mining mode.");
+            }
+
+
+            return;
+        }
+
+        if (timer.passed(120000) && !customPause) {
+            timer.reset();
+            worldLoads = 0;
+        }
+    });
+
+    @EventHandler
     private Listener<EventPlayerUpdate> OnPlayerUpdate = new Listener<>(p_Event ->
     {
+        if (customPause) {
+            return;
+        }
+
         mc.playerController.blockHitDelay = 0;
 
         if (this.reset.getValue() && Minecraft.getMinecraft().gameSettings.keyBindUseItem.isKeyDown())
@@ -68,6 +134,10 @@ public final class SpeedyGonzales extends Module
     @EventHandler
     private Listener<EventPlayerResetBlockRemoving> ResetBlock = new Listener<>(p_Event ->
     {
+        if (customPause) {
+            return;
+        }
+
         if (this.reset.getValue())
         {
             p_Event.cancel();
@@ -77,6 +147,10 @@ public final class SpeedyGonzales extends Module
     @EventHandler
     private Listener<EventPlayerClickBlock> ClickBlock = new Listener<>(p_Event ->
     {
+        if (customPause) {
+            return;
+        }
+
         if (this.reset.getValue())
         {
             if (mc.playerController.curBlockDamageMP > 0.1f)
@@ -89,6 +163,10 @@ public final class SpeedyGonzales extends Module
     @EventHandler
     private Listener<EventPlayerDamageBlock> OnDamageBlock = new Listener<>(p_Event ->
     {
+        if (customPause) {
+            return;
+        }
+
         if (canBreak(p_Event.getPos()))
         {
             if (this.reset.getValue())
@@ -113,6 +191,9 @@ public final class SpeedyGonzales extends Module
                 }
                 break;
             case Instant:
+                if (slowMode && !slowModeTimer.passed(slowSpeedMs)) {
+                    break;
+                }
                 mc.player.swingArm(EnumHand.MAIN_HAND);
                 mc.player.connection.sendPacket(new CPacketPlayerDigging(
                         CPacketPlayerDigging.Action.START_DESTROY_BLOCK, p_Event.getPos(), p_Event.getDirection()));
@@ -120,6 +201,8 @@ public final class SpeedyGonzales extends Module
                         p_Event.getPos(), p_Event.getDirection()));
                 mc.playerController.onPlayerDestroyBlock(p_Event.getPos());
                 mc.world.setBlockToAir(p_Event.getPos());
+
+                slowModeTimer.reset();
                 break;
             case Bypass:
 
@@ -158,7 +241,7 @@ public final class SpeedyGonzales extends Module
         final IBlockState blockState = mc.world.getBlockState(pos);
         final Block block = blockState.getBlock();
 
-        return block.getBlockHardness(blockState, Minecraft.getMinecraft().world, pos) != -1;
+        return block == Blocks.NETHERRACK && block.getBlockHardness(blockState, Minecraft.getMinecraft().world, pos) != -1;
     }
 
 }
