@@ -69,6 +69,8 @@ public class AutoBuilderModule extends Module
     {
         CHBXHighway,
         CHBZHighway,
+        CHBSEHighway,
+        CHBNEHighway,
         NEOWHighway,
         Highway,
         Swastika,
@@ -469,14 +471,14 @@ public class AutoBuilderModule extends Module
                     BlockArray.add(newOriginPos.down().north(2).add(i, 0, 0));
                     BlockArray.add(newOriginPos.down().north(3).add(i, 0, 0));
                     BlockArray.add(newOriginPos.down().north(4).add(i, 0, 0));
-                    BlockArray.add(newOriginPos.down().north(5).up().add(i, 0, 0));
+                    BlockArray.add(newOriginPos.north(5).add(i, 0, 0));
 
                     BlockArray.add(newOriginPos.add(-i, 0, 0));
                     BlockArray.add(newOriginPos.down().north(1).add(-i, 0, 0));
                     BlockArray.add(newOriginPos.down().north(2).add(-i, 0, 0));
                     BlockArray.add(newOriginPos.down().north(3).add(-i, 0, 0));
                     BlockArray.add(newOriginPos.down().north(4).add(-i, 0, 0));
-                    BlockArray.add(newOriginPos.down().north(5).up().add(-i, 0, 0));
+                    BlockArray.add(newOriginPos.north(5).add(-i, 0, 0));
                 }
                 break;
             }
@@ -491,14 +493,92 @@ public class AutoBuilderModule extends Module
                     BlockArray.add(newOriginPos.down().west(2).add(0, 0, i));
                     BlockArray.add(newOriginPos.down().west(3).add(0, 0, i));
                     BlockArray.add(newOriginPos.down().west(4).add(0, 0, i));
-                    BlockArray.add(newOriginPos.down().west(5).up().add(0, 0, i));
+                    BlockArray.add(newOriginPos.west(5).add(0, 0, i));
 
                     BlockArray.add(newOriginPos.add(0, 0, -i));
                     BlockArray.add(newOriginPos.down().west(1).add(0, 0, -i));
                     BlockArray.add(newOriginPos.down().west(2).add(0, 0, -i));
                     BlockArray.add(newOriginPos.down().west(3).add(0, 0, -i));
                     BlockArray.add(newOriginPos.down().west(4).add(0, 0, -i));
-                    BlockArray.add(newOriginPos.down().west(5).up().add(0, 0, -i));
+                    BlockArray.add(newOriginPos.west(5).add(0, 0, -i));
+                }
+                break;
+            }
+
+            case CHBSEHighway: {
+                int xOff = XOffset.getValue() == -69 ? 0 : XOffset.getValue();
+                int ZOff = ZOffset.getValue() == -69 ? -4 : ZOffset.getValue();
+                BlockPos newOriginPos = getClosestPoint(new Vec3d(xOff, 0, ZOff), new Vec3d(1, 0, 1), new Vec3d(orignPos.getX(), orignPos.getY(), orignPos.getZ()));
+                for (int i = 0; i < 7; i++) {
+                    BlockArray.add(newOriginPos.add(i, 0, i));
+                    if (!mc.world.getBlockState(newOriginPos.down().add(i, 0, i)).isFullBlock())
+                        BlockArray.add(newOriginPos.down().add(i, 0, i)); // Under Rail
+                    BlockArray.add(newOriginPos.down().west(1).add(i, 0, i));
+                    BlockArray.add(newOriginPos.down().west(2).add(i, 0, i));
+                    BlockArray.add(newOriginPos.down().west(3).add(i, 0, i));
+                    BlockArray.add(newOriginPos.down().west(4).add(i, 0, i));
+                    BlockArray.add(newOriginPos.down().west(5).add(i, 0, i));
+                    BlockArray.add(newOriginPos.down().west(6).add(i, 0, i));
+                    BlockArray.add(newOriginPos.down().west(7).add(i, 0, i));
+                    if (!mc.world.getBlockState(newOriginPos.down().west(8).add(i, 0, i)).isFullBlock())
+                        BlockArray.add(newOriginPos.down().west(8).add(i, 0, i)); // Under Rail
+                    BlockArray.add(newOriginPos.west(8).add(i, 0, i));
+
+                    if (i == 0)
+                        continue;
+
+                    BlockArray.add(newOriginPos.add(-i, 0, -i));
+                    if (!mc.world.getBlockState(newOriginPos.down().add(-i, 0, -i)).isFullBlock())
+                        BlockArray.add(newOriginPos.down().add(-i, 0, -i)); // Under Rail
+                    BlockArray.add(newOriginPos.down().west(1).add(-i, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(2).add(-i, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(3).add(-i, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(4).add(-i, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(5).add(-i, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(6).add(-i, 0, -i));
+                    BlockArray.add(newOriginPos.down().west(7).add(-i, 0, -i));
+                    if (!mc.world.getBlockState(newOriginPos.down().west(8).add(-i, 0, -i)).isFullBlock())
+                        BlockArray.add(newOriginPos.down().west(8).add(-i, 0, -i)); // Under Rail
+                    BlockArray.add(newOriginPos.west(8).add(-i, 0, -i));
+                }
+                break;
+            }
+
+            case CHBNEHighway: {
+                int xOff = XOffset.getValue() == -69 ? 3 : XOffset.getValue();
+                int ZOff = ZOffset.getValue() == -69 ? 0 : ZOffset.getValue();
+                BlockPos newOriginPos = getClosestPoint(new Vec3d(xOff, 0, ZOff), new Vec3d(1, 0, -1), new Vec3d(orignPos.getX(), orignPos.getY(), orignPos.getZ()));
+                for (int i = 0; i < 7; i++) {
+                    BlockArray.add(newOriginPos.add(i, 0, -i));
+                    if (!mc.world.getBlockState(newOriginPos.down().add(i, 0, -i)).isFullBlock())
+                        BlockArray.add(newOriginPos.down().add(i, 0, -i)); // Under Rail
+                    BlockArray.add(newOriginPos.down().north(1).add(i, 0, -i));
+                    BlockArray.add(newOriginPos.down().north(2).add(i, 0, -i));
+                    BlockArray.add(newOriginPos.down().north(3).add(i, 0, -i));
+                    BlockArray.add(newOriginPos.down().north(4).add(i, 0, -i));
+                    BlockArray.add(newOriginPos.down().north(5).add(i, 0, -i));
+                    BlockArray.add(newOriginPos.down().north(6).add(i, 0, -i));
+                    BlockArray.add(newOriginPos.down().north(7).add(i, 0, -i));
+                    if (!mc.world.getBlockState(newOriginPos.down().north(8).add(i, 0, -i)).isFullBlock())
+                        BlockArray.add(newOriginPos.down().north(8).add(i, 0, -i)); // Under Rail
+                    BlockArray.add(newOriginPos.north(8).add(i, 0, -i));
+
+                    if (i == 0)
+                        continue;
+
+                    BlockArray.add(newOriginPos.add(-i, 0, i));
+                    if (!mc.world.getBlockState(newOriginPos.down().add(-i, 0, i)).isFullBlock())
+                        BlockArray.add(newOriginPos.down().add(-i, 0, i)); // Under Rail
+                    BlockArray.add(newOriginPos.down().north(1).add(-i, 0, i));
+                    BlockArray.add(newOriginPos.down().north(2).add(-i, 0, i));
+                    BlockArray.add(newOriginPos.down().north(3).add(-i, 0, i));
+                    BlockArray.add(newOriginPos.down().north(4).add(-i, 0, i));
+                    BlockArray.add(newOriginPos.down().north(5).add(-i, 0, i));
+                    BlockArray.add(newOriginPos.down().north(6).add(-i, 0, i));
+                    BlockArray.add(newOriginPos.down().north(7).add(-i, 0, i));
+                    if (!mc.world.getBlockState(newOriginPos.down().north(8).add(-i, 0, i)).isFullBlock())
+                        BlockArray.add(newOriginPos.down().north(8).add(-i, 0, i)); // Under Rail
+                    BlockArray.add(newOriginPos.north(8).add(-i, 0, i));
                 }
                 break;
             }
@@ -1040,10 +1120,17 @@ public class AutoBuilderModule extends Module
 
     private BlockPos getClosestPoint(Vec3d origin, Vec3d direction, Vec3d point) {
         int yLevel = 99;
-        if (this.Mode.getValue() == Modes.CHBXHighway || this.Mode.getValue() == Modes.CHBZHighway) {
+        if (this.Mode.getValue() == Modes.CHBXHighway || this.Mode.getValue() == Modes.CHBZHighway || this.Mode.getValue() == Modes.CHBSEHighway || this.Mode.getValue() == Modes.CHBNEHighway) {
             yLevel = 120;
         }
 
+        direction = direction.normalize();
+        Vec3d lhs = point.subtract(origin);
+        double dotP = lhs.dotProduct(direction);
+        Vec3d closest = origin.add(direction.scale(dotP));
+        return new BlockPos(Math.round(closest.x), yLevel, Math.round(closest.z));
+
+        /*
         Vec3d directBackup = new Vec3d(direction.x, direction.y, direction.z);
 
         boolean diag = direction.x != 0 && direction.z != 0;
@@ -1074,6 +1161,7 @@ public class AutoBuilderModule extends Module
             }
         }
         return new BlockPos(iClosestPosX, yLevel, iClosestPosZ);
+         */
         /*
         // https://stackoverflow.com/a/51906100
         direction.normalise();
