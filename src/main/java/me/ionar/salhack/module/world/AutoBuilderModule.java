@@ -62,8 +62,8 @@ public class AutoBuilderModule extends Module
     public final Value<Float> Delay = new Value<Float>("Delay", new String[] {"Delay"}, "Delay of the place", 0f, 0.0f, 1.0f, 0.1f);
     public final Value<Boolean> Visualize = new Value<Boolean>("Visualize", new String[] {"Render"}, "Visualizes where blocks are to be placed", true);
     public final Value<Boolean> ObsidianOnly = new Value<Boolean>("ObsidianOnly", new String[] {""}, "Will only build when player is holding obsidian", true);
-    public final Value<Integer> XOffset = new Value<Integer>("XOffset", new String[] {""}, "Custom Nether Highway X Offset, leave at -69 for defaults", -69, -69, Integer.MAX_VALUE, 1);
-    public final Value<Integer> ZOffset = new Value<Integer>("ZOffset", new String[] {""}, "Custom Nether Highway Z Offset, leave at -69 for defaults", -69, -69, Integer.MAX_VALUE, 1);
+    public final Value<Integer> XOffset = new Value<Integer>("XOffset", new String[] {""}, "Custom Nether Highway X Offset, leave at -69 for defaults", -69, -69, 29999999, 1000);
+    public final Value<Integer> ZOffset = new Value<Integer>("ZOffset", new String[] {""}, "Custom Nether Highway Z Offset, leave at -69 for defaults", -69, -69, 29999999, 1000);
 
     public enum Modes
     {
@@ -463,7 +463,7 @@ public class AutoBuilderModule extends Module
         {
             case CHBXHighway: {
                 int xOff = XOffset.getValue() == -69 ? 0 : XOffset.getValue();
-                int ZOff = ZOffset.getValue() == -69 ? 2 : ZOffset.getValue();
+                int ZOff = ZOffset.getValue() == -69 ? 2 : ZOffset.getValue() + 2;
                 BlockPos newOriginPos = getClosestPoint(new Vec3d(xOff, 0, ZOff), new Vec3d(1, 0, 0), new Vec3d(orignPos.getX(), orignPos.getY(), orignPos.getZ()));
                 for (int i = 0; i < 7; i++) {
                     BlockArray.add(newOriginPos.add(i, 0, 0));
@@ -484,7 +484,7 @@ public class AutoBuilderModule extends Module
             }
 
             case CHBZHighway: {
-                int xOff = XOffset.getValue() == -69 ? 2 : XOffset.getValue();
+                int xOff = XOffset.getValue() == -69 ? 2 : XOffset.getValue() + 2;
                 int ZOff = ZOffset.getValue() == -69 ? 0 : ZOffset.getValue();
                 BlockPos newOriginPos = getClosestPoint(new Vec3d(xOff, 0, ZOff), new Vec3d(0, 0, 1), new Vec3d(orignPos.getX(), orignPos.getY(), orignPos.getZ()));
                 for (int i = 0; i < 7; i++) {
@@ -507,11 +507,11 @@ public class AutoBuilderModule extends Module
 
             case CHBSEHighway: {
                 int xOff = XOffset.getValue() == -69 ? 0 : XOffset.getValue();
-                int ZOff = ZOffset.getValue() == -69 ? -4 : ZOffset.getValue();
+                int ZOff = ZOffset.getValue() == -69 ? -4 : ZOffset.getValue() - 4;
                 BlockPos newOriginPos = getClosestPoint(new Vec3d(xOff, 0, ZOff), new Vec3d(1, 0, 1), new Vec3d(orignPos.getX(), orignPos.getY(), orignPos.getZ()));
                 for (int i = 0; i < 7; i++) {
                     BlockArray.add(newOriginPos.add(i, 0, i));
-                    if (!mc.world.getBlockState(newOriginPos.down().add(i, 0, i)).isFullBlock())
+                    if (!mc.world.getBlockState(newOriginPos.add(i, 0, i)).isFullBlock())
                         BlockArray.add(newOriginPos.down().add(i, 0, i)); // Under Rail
                     BlockArray.add(newOriginPos.down().west(1).add(i, 0, i));
                     BlockArray.add(newOriginPos.down().west(2).add(i, 0, i));
@@ -520,7 +520,7 @@ public class AutoBuilderModule extends Module
                     BlockArray.add(newOriginPos.down().west(5).add(i, 0, i));
                     BlockArray.add(newOriginPos.down().west(6).add(i, 0, i));
                     BlockArray.add(newOriginPos.down().west(7).add(i, 0, i));
-                    if (!mc.world.getBlockState(newOriginPos.down().west(8).add(i, 0, i)).isFullBlock())
+                    if (!mc.world.getBlockState(newOriginPos.west(8).add(i, 0, i)).isFullBlock())
                         BlockArray.add(newOriginPos.down().west(8).add(i, 0, i)); // Under Rail
                     BlockArray.add(newOriginPos.west(8).add(i, 0, i));
 
@@ -528,7 +528,7 @@ public class AutoBuilderModule extends Module
                         continue;
 
                     BlockArray.add(newOriginPos.add(-i, 0, -i));
-                    if (!mc.world.getBlockState(newOriginPos.down().add(-i, 0, -i)).isFullBlock())
+                    if (!mc.world.getBlockState(newOriginPos.add(-i, 0, -i)).isFullBlock())
                         BlockArray.add(newOriginPos.down().add(-i, 0, -i)); // Under Rail
                     BlockArray.add(newOriginPos.down().west(1).add(-i, 0, -i));
                     BlockArray.add(newOriginPos.down().west(2).add(-i, 0, -i));
@@ -537,7 +537,7 @@ public class AutoBuilderModule extends Module
                     BlockArray.add(newOriginPos.down().west(5).add(-i, 0, -i));
                     BlockArray.add(newOriginPos.down().west(6).add(-i, 0, -i));
                     BlockArray.add(newOriginPos.down().west(7).add(-i, 0, -i));
-                    if (!mc.world.getBlockState(newOriginPos.down().west(8).add(-i, 0, -i)).isFullBlock())
+                    if (!mc.world.getBlockState(newOriginPos.west(8).add(-i, 0, -i)).isFullBlock())
                         BlockArray.add(newOriginPos.down().west(8).add(-i, 0, -i)); // Under Rail
                     BlockArray.add(newOriginPos.west(8).add(-i, 0, -i));
                 }
@@ -545,12 +545,12 @@ public class AutoBuilderModule extends Module
             }
 
             case CHBNEHighway: {
-                int xOff = XOffset.getValue() == -69 ? 3 : XOffset.getValue();
+                int xOff = XOffset.getValue() == -69 ? 3 : XOffset.getValue() + 3;
                 int ZOff = ZOffset.getValue() == -69 ? 0 : ZOffset.getValue();
                 BlockPos newOriginPos = getClosestPoint(new Vec3d(xOff, 0, ZOff), new Vec3d(1, 0, -1), new Vec3d(orignPos.getX(), orignPos.getY(), orignPos.getZ()));
                 for (int i = 0; i < 7; i++) {
                     BlockArray.add(newOriginPos.add(i, 0, -i));
-                    if (!mc.world.getBlockState(newOriginPos.down().add(i, 0, -i)).isFullBlock())
+                    if (!mc.world.getBlockState(newOriginPos.add(i, 0, -i)).isFullBlock())
                         BlockArray.add(newOriginPos.down().add(i, 0, -i)); // Under Rail
                     BlockArray.add(newOriginPos.down().north(1).add(i, 0, -i));
                     BlockArray.add(newOriginPos.down().north(2).add(i, 0, -i));
@@ -559,7 +559,7 @@ public class AutoBuilderModule extends Module
                     BlockArray.add(newOriginPos.down().north(5).add(i, 0, -i));
                     BlockArray.add(newOriginPos.down().north(6).add(i, 0, -i));
                     BlockArray.add(newOriginPos.down().north(7).add(i, 0, -i));
-                    if (!mc.world.getBlockState(newOriginPos.down().north(8).add(i, 0, -i)).isFullBlock())
+                    if (!mc.world.getBlockState(newOriginPos.north(8).add(i, 0, -i)).isFullBlock())
                         BlockArray.add(newOriginPos.down().north(8).add(i, 0, -i)); // Under Rail
                     BlockArray.add(newOriginPos.north(8).add(i, 0, -i));
 
@@ -567,7 +567,7 @@ public class AutoBuilderModule extends Module
                         continue;
 
                     BlockArray.add(newOriginPos.add(-i, 0, i));
-                    if (!mc.world.getBlockState(newOriginPos.down().add(-i, 0, i)).isFullBlock())
+                    if (!mc.world.getBlockState(newOriginPos.add(-i, 0, i)).isFullBlock())
                         BlockArray.add(newOriginPos.down().add(-i, 0, i)); // Under Rail
                     BlockArray.add(newOriginPos.down().north(1).add(-i, 0, i));
                     BlockArray.add(newOriginPos.down().north(2).add(-i, 0, i));
@@ -576,7 +576,7 @@ public class AutoBuilderModule extends Module
                     BlockArray.add(newOriginPos.down().north(5).add(-i, 0, i));
                     BlockArray.add(newOriginPos.down().north(6).add(-i, 0, i));
                     BlockArray.add(newOriginPos.down().north(7).add(-i, 0, i));
-                    if (!mc.world.getBlockState(newOriginPos.down().north(8).add(-i, 0, i)).isFullBlock())
+                    if (!mc.world.getBlockState(newOriginPos.north(8).add(-i, 0, i)).isFullBlock())
                         BlockArray.add(newOriginPos.down().north(8).add(-i, 0, i)); // Under Rail
                     BlockArray.add(newOriginPos.north(8).add(-i, 0, i));
                 }
