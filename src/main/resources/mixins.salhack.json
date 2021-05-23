@@ -29,7 +29,6 @@
     "MixinGuiBossOverlay",
     "MixinChunkRenderContainer",
     "MixinRenderChunk",
-    "MixinGuiDisconnected",
     "MixinRenderManager",
     "MixinEntityPig",
     "MixinEntityLlama",

@@ -86,7 +86,6 @@ public class ModuleManager
         Add(new AutoFarmlandModule());
         Add(new AutoMendArmorModule());
         Add(new AutoMountModule());
-        Add(new AutoReconnectModule());
         Add(new AutoShearModule());
         Add(new AutoShovelPathModule());
         Add(new AutoSignModule());
