@@ -84,6 +84,7 @@ public class ModuleManager
         Add(new AutoEatModule());
         Add(new AutoDyeModule());
         Add(new AutoFarmlandModule());
+        Add(new AutoMendModule());
         Add(new AutoMendArmorModule());
         Add(new AutoMountModule());
         Add(new AutoShearModule());

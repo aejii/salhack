@@ -139,6 +139,12 @@ public class AutoBuilderModule extends Module
     @EventHandler
     private Listener<EventPlayerMotionUpdate> OnPlayerUpdate = new Listener<>(p_Event ->
     {
+        if (p_Event.getEra() != Era.PRE)
+            return;
+
+        if (!timer.passed(Delay.getValue() * 1000f))
+            return;
+
         if (mc.player == null) {
             return;
         }
@@ -146,12 +152,6 @@ public class AutoBuilderModule extends Module
         if (ObsidianOnly.getValue() && Item.getIdFromItem(mc.player.getHeldItemMainhand().getItem()) != Item.getIdFromItem(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
             return;
         }
-
-        if (p_Event.getEra() != Era.PRE)
-            return;
-        
-        if (!timer.passed(Delay.getValue() * 1000f))
-            return;
         
         timer.reset();
         
@@ -338,25 +338,16 @@ public class AutoBuilderModule extends Module
             boolean l_MovedXYZ = l_PosXDifference * l_PosXDifference + l_PosYDifference * l_PosYDifference + l_PosZDifference * l_PosZDifference > 9.0E-4D || mc.player.positionUpdateTicks >= 20;
             boolean l_MovedRotation = l_YawDifference != 0.0D || l_RotationDifference != 0.0D;
 
-            if (mc.player.isRiding())
-            {
+            if (mc.player.isRiding()) {
                 mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.motionX, -999.0D, mc.player.motionZ, l_Yaw, l_Pitch, mc.player.onGround));
                 l_MovedXYZ = false;
-            }
-            else if (l_MovedXYZ && l_MovedRotation)
-            {
+            } else if (l_MovedXYZ && l_MovedRotation) {
                 mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.posX, axisalignedbb.minY, mc.player.posZ, l_Yaw, l_Pitch, mc.player.onGround));
-            }
-            else if (l_MovedXYZ)
-            {
+            } else if (l_MovedXYZ) {
                 mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, axisalignedbb.minY, mc.player.posZ, mc.player.onGround));
-            }
-            else if (l_MovedRotation)
-            {
+            } else if (l_MovedRotation) {
                 mc.player.connection.sendPacket(new CPacketPlayer.Rotation(l_Yaw, l_Pitch, mc.player.onGround));
-            }
-            else if (mc.player.prevOnGround != mc.player.onGround)
-            {
+            } else if (mc.player.prevOnGround != mc.player.onGround) {
                 mc.player.connection.sendPacket(new CPacketPlayer(mc.player.onGround));
             }
 
