@@ -79,6 +79,7 @@ public class AutoMendModule extends Module {
             for (int i = 0; i < 36; i++) {
                 ItemStack stack = mc.player.inventory.mainInventory.get(i);
                 if (isMendableTool(stack) && stack.isItemDamaged() && i != currentSlot && stack.getItemDamage() > bestSlotDamage) {
+                    bestSlotDamage = stack.getItemDamage();
                     bestSlot = i;
                 }
             }
