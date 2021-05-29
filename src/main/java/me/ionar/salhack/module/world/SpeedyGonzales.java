@@ -1,12 +1,11 @@
 package me.ionar.salhack.module.world;
 
-import java.awt.Color;
-import java.util.Objects;
-
-import akka.io.Udp;
 import me.ionar.salhack.events.client.EventClientTick;
 import me.ionar.salhack.events.minecraft.WorldLoadEvent;
-import me.ionar.salhack.events.player.*;
+import me.ionar.salhack.events.player.EventPlayerClickBlock;
+import me.ionar.salhack.events.player.EventPlayerDamageBlock;
+import me.ionar.salhack.events.player.EventPlayerResetBlockRemoving;
+import me.ionar.salhack.events.player.EventPlayerUpdate;
 import me.ionar.salhack.module.Module;
 import me.ionar.salhack.module.Value;
 import me.ionar.salhack.util.Timer;
@@ -15,8 +14,6 @@ import me.zero.alpine.fork.listener.Listener;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.util.EnumHand;
@@ -40,13 +37,17 @@ public final class SpeedyGonzales extends Module
     { "DoubleBreak", "Double", "DB" }, "Mining a block will also mine the block above it, if enabled.", false);
     public final Value<Boolean> FastFall = new Value<Boolean>("FastFall", new String[]
     { "FF" }, "Makes it so you fall faster.", false);
+    public final Value<Integer> SlowModeSpeed = new Value<>("SMSpeed", new String[] { "SlowModeSpeed" }, "Time in ms between block breaks when in slow mode instant mine", 200, 0, 1000, 10);
+    public final Value<Integer> SlowModeLength = new Value<>("SMLength", new String[] { "SlowModeLength" }, "Time in minutes to use slow mode before going back to normal speed", 30, 0, 120, 1);
+    public final Value<Integer> SlowModeWorldLoads = new Value<>("SMWLoads", new String[] { "SlowModeWorldLoads" }, "Amount of world loads in SMWLTime before activating slow mode", 3, 1, 20, 1);
+    public final Value<Integer> SlowModeWorldLoadsTime = new Value<>("SMWLTime", new String[] { "SlowModeWorldLoadsTime" }, "Time in minutes to check for SMWLoads count before activating slow mode", 2, 0, 10, 1);
+    public final Value<Boolean> OnlyNetherrack = new Value<>("OnlyNetherrack", new String[] { "" }, "If enabled will only mine netherrack quicker", true);
 
     private Timer timer = new Timer();
     private int worldLoads = 0;
     private boolean customPause = false;
 
     private boolean slowMode = false;
-    private int slowSpeedMs = 200;
     private Timer slowModeTimer = new Timer();
     private Timer slowModeRunningTime = new Timer();
 
@@ -76,24 +77,24 @@ public final class SpeedyGonzales extends Module
     @EventHandler
     private Listener<EventClientTick> onTick = new Listener<>(p_Event -> {
         // Been 30 minutes and mod is disabled, so enable it
-       if ((timer.passed(1800000) && customPause) || (slowModeRunningTime.passed(1800000) && slowMode)) {
+       if ((timer.passed(SlowModeLength.getValue() * 60000) && customPause) || (slowModeRunningTime.passed(SlowModeLength.getValue() * 60000) && slowMode)) {
            timer.reset();
            customPause = false;
            slowMode = false;
            worldLoads = 0;
-           SendMessage("It has been 30 minutes. Resuming this module.");
+           SendMessage("It has been " + SlowModeLength.getValue() + " minutes. Resuming this module.");
            //this.toggle();
        }
 
 
         // In 120 seconds there have been 3 world loads
-        if (!timer.passed(120000) && worldLoads >= 3 && !customPause) {
+        if (!timer.passed(SlowModeWorldLoadsTime.getValue() * 60000) && worldLoads >= SlowModeWorldLoads.getValue() && !customPause) {
             timer.reset();
             worldLoads = 0;
             //this.toggle();
             if (slowMode) {
                 customPause = true;
-                SendMessage("There have been 3 world loads in less than 120 seconds. Pausing this module for 30 minutes.");
+                SendMessage("There have been " + SlowModeWorldLoads.getValue() + " world loads in less than " + SlowModeWorldLoadsTime.getValue() + " minutes. Pausing this module for " + SlowModeLength.getValue() + " minutes.");
             } else {
                 slowMode = true;
                 slowModeRunningTime.reset();
@@ -104,7 +105,7 @@ public final class SpeedyGonzales extends Module
             return;
         }
 
-        if (timer.passed(120000) && !customPause) {
+        if (timer.passed(SlowModeWorldLoadsTime.getValue() * 60000) && !customPause) {
             timer.reset();
             worldLoads = 0;
         }
@@ -191,7 +192,7 @@ public final class SpeedyGonzales extends Module
                 }
                 break;
             case Instant:
-                if (slowMode && !slowModeTimer.passed(slowSpeedMs)) {
+                if (slowMode && !slowModeTimer.passed(SlowModeSpeed.getValue())) {
                     break;
                 }
                 mc.player.swingArm(EnumHand.MAIN_HAND);
@@ -241,7 +242,11 @@ public final class SpeedyGonzales extends Module
         final IBlockState blockState = mc.world.getBlockState(pos);
         final Block block = blockState.getBlock();
 
-        return block == Blocks.NETHERRACK && block.getBlockHardness(blockState, Minecraft.getMinecraft().world, pos) != -1;
+        if (OnlyNetherrack.getValue()) {
+            return block == Blocks.NETHERRACK && block.getBlockHardness(blockState, Minecraft.getMinecraft().world, pos) != -1;
+        } else {
+            return block.getBlockHardness(blockState, Minecraft.getMinecraft().world, pos) != -1;
+        }
     }
 
 }
