@@ -198,11 +198,11 @@ public class AutoBuilderModule extends Module
                 
                 int l_BlocksPerTick = BlocksPerTick.getValue();
 
-                // Sort the block array so it tries to place closest blocks first
                 if (mc.player == null) {
                     return;
                 }
                 BlockPos playerPos = mc.player.getPosition();
+                // Sort the block array so it tries to place closest blocks first
                 BlockArray.sort((o1, o2) -> {
                     double dist1 = playerPos.getDistance(o1.getX(), o1.getY(), o1.getZ());
                     double dist2 = playerPos.getDistance(o2.getX(), o2.getY(), o2.getZ());
@@ -217,9 +217,14 @@ public class AutoBuilderModule extends Module
                     
                     if (l_Result == ValidResult.NoNeighbors)
                         continue;*/
-                    
+
+                    // Don't try to place if entities are in the way
+                    if (!mc.world.checkNoEntityCollision(new AxisAlignedBB(l_Pos))) {
+                        continue;
+                    }
+
                     PlaceResult l_Place = BlockInteractionHelper.place (l_Pos, 5.0f, false, l_Offset == -0.5f);
-                    
+
                     if (l_Place != PlaceResult.Placed)
                         continue;
                     
