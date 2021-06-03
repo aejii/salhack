@@ -110,7 +110,7 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer
     }
 
     @Inject(method = "sendChatMessage", at = @At("HEAD"), cancellable = true)
-    public void swingArm(String p_Message, CallbackInfo p_Info)
+    public void onSendChatMessage(String p_Message, CallbackInfo p_Info)
     {
         EventPlayerSendChatMessage l_Event = new EventPlayerSendChatMessage(p_Message);
         SalHackMod.EVENT_BUS.post(l_Event);
