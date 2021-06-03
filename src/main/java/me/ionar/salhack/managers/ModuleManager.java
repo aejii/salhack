@@ -160,6 +160,7 @@ public class ModuleManager
         Add(new HudModule());
         Add(Keybinds = new KeybindsModule());
         Add(new ReliantChatModule());
+        Add(new MouseGrabModule());
         
         /// World
         Add(new AutoBuilderModule());
