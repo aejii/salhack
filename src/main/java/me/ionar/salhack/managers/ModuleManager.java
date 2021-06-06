@@ -97,7 +97,6 @@ public class ModuleManager
         Add(new ChatNotifierModule());
         Add(new ChestStealerModule());
         Add(new ChestSwapModule());
-        Add(new DiscordRPCModule());
         Add(new FakePlayer());
         Add(new FriendsModule());
         Add(new GlobalLocationModule());

@@ -1,6 +1,7 @@
 package me.ionar.salhack.mixin.client;
 
 import com.google.common.base.Predicate;
+import com.mojang.authlib.GameProfile;
 import me.ionar.salhack.events.render.EventRenderGetEntitiesINAABBexcluding;
 import me.ionar.salhack.gui.chest.SalGuiChest;
 import me.ionar.salhack.main.Wrapper;
@@ -18,6 +19,7 @@ import net.minecraft.util.EnumHand;
 
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.IInteractionObject;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -35,8 +37,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(EntityPlayerSP.class)
-public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer
+public abstract class MixinEntityPlayerSP extends AbstractClientPlayer
 {
+    public MixinEntityPlayerSP(World worldIn, GameProfile playerProfile) {
+        super(worldIn, playerProfile);
+    }
+
     @Redirect(method = "onLivingUpdate", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/EntityPlayerSP;closeScreen()V"))
     public void closeScreen(EntityPlayerSP entityPlayerSP)
     {

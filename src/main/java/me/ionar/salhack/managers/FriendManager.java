@@ -104,7 +104,7 @@ public class FriendManager
         if (FriendList.containsKey(p_Name))
             return false;
         
-        Friend l_Friend = new Friend(p_Name, p_Name, null);
+        Friend l_Friend = new Friend(p_Name, p_Name);
         
         FriendList.put(p_Name, l_Friend);
         SaveFriends();

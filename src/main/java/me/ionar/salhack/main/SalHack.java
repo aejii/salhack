@@ -1,10 +1,8 @@
 package me.ionar.salhack.main;
 
 import me.ionar.salhack.SalHackMod;
-import me.ionar.salhack.managers.CapeManager;
 import me.ionar.salhack.managers.CommandManager;
 import me.ionar.salhack.managers.DirectoryManager;
-import me.ionar.salhack.managers.DiscordManager;
 import me.ionar.salhack.managers.FontManager;
 import me.ionar.salhack.managers.FriendManager;
 import me.ionar.salhack.managers.HudManager;
@@ -24,13 +22,11 @@ public class SalHack
     private static FontManager m_FontManager = new FontManager();
     private static HudManager m_HudManager = new HudManager();
     private static FriendManager m_FriendManager = new FriendManager();
-    private static DiscordManager m_DiscordManager = new DiscordManager();
     private static DirectoryManager m_DirectoryManager = new DirectoryManager();
     private static CommandManager m_CommandManager = new CommandManager();
     private static TickRateManager m_TickRateManager = new TickRateManager();
     private static NotificationManager m_NotificationManager = new NotificationManager();
     private static WaypointManager m_WaypointManager = new WaypointManager();
-    private static CapeManager m_CapeManager = new CapeManager();
     private static AlwaysEnabledModule m_AlwaysEnabledMod;
     private static PresetsManager m_PresetsManager = new PresetsManager();
     private static UUIDManager m_UUIDManager = new UUIDManager();
@@ -88,11 +84,6 @@ public class SalHack
         return m_FriendManager;
     }
 
-    public static DiscordManager GetDiscordManager()
-    {
-        return m_DiscordManager;
-    }
-
     public static DirectoryManager GetDirectoryManager()
     {
         return m_DirectoryManager;
@@ -118,11 +109,6 @@ public class SalHack
         return m_WaypointManager;
     }
 
-    public static CapeManager GetCapeManager()
-    {
-        return m_CapeManager;
-    }
-    
     public static PresetsManager GetPresetsManager()
     {
         return m_PresetsManager;

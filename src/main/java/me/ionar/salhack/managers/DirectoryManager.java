@@ -26,7 +26,6 @@ public class DirectoryManager
             CreateDirectory("SalHack/Locater");
             CreateDirectory("SalHack/StashFinder");
             CreateDirectory("SalHack/Config");
-            CreateDirectory("SalHack/Capes");
             CreateDirectory("SalHack/Music");
             CreateDirectory("SalHack/CoordExploit");
             CreateDirectory("SalHack/LogoutSpots");

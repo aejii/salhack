@@ -13,7 +13,6 @@
     "MixinGuiScreen",
     "MixinNetworkManager",
     "MixinMinecraft",
-    "MixinAbstractClientPlayer",
     "MixinRenderPlayer",
     "MixinParticleManager",
     "MixinTileEntitySignRenderer",
