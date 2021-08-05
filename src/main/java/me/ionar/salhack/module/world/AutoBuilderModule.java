@@ -64,6 +64,8 @@ public class AutoBuilderModule extends Module
     public final Value<Boolean> ObsidianOnly = new Value<Boolean>("ObsidianOnly", new String[] {""}, "Will only build when player is holding obsidian", true);
     public final Value<Integer> XOffset = new Value<Integer>("XOffset", new String[] {""}, "Custom Nether Highway X Offset, leave at -69 for defaults", -69, -69, 29999999, 1000);
     public final Value<Integer> ZOffset = new Value<Integer>("ZOffset", new String[] {""}, "Custom Nether Highway Z Offset, leave at -69 for defaults", -69, -69, 29999999, 1000);
+    public final Value<Boolean> PauseOnStuck = new Value<>("PauseOnStuck", new String[] {""}, "Pause this module if player hasn't placed any obsidian for StuckCheckTicks value", true);
+    public final Value<Float> StuckCheckTime = new Value<>("StuckCheckTime", new String[] {""}, "If player hasn't placed obsidian for set seconds module will pause until player places obsidian", 5.0f, 0.0f, 60.0f, 1.0f);
 
     public enum Modes
     {
@@ -100,7 +102,10 @@ public class AutoBuilderModule extends Module
     private ICamera camera = new Frustum();
     private Timer timer = new Timer();
     private Timer NetherPortalTimer = new Timer();
+    private Timer stuckCheckTimer = new Timer();
     private BlockPos SourceBlock = null;
+    private int obsidianCount = 0;
+    private boolean stuck = false;
 
     @Override
     public void onEnable()
@@ -116,6 +121,9 @@ public class AutoBuilderModule extends Module
         timer.reset();
         SourceBlock = null;
         BlockArray.clear();
+        stuck = false;
+        stuckCheckTimer.reset();
+        obsidianCount = 0;
     }
     
     private float PitchHead = 0.0f;
@@ -150,7 +158,30 @@ public class AutoBuilderModule extends Module
         }
 
         if (ObsidianOnly.getValue() && Item.getIdFromItem(mc.player.getHeldItemMainhand().getItem()) != Item.getIdFromItem(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
+            stuckCheckTimer.reset();
             return;
+        }
+
+        if (PauseOnStuck.getValue()) {
+            int curObbyCount = getItemCountInventory(Item.getIdFromItem(Item.getItemFromBlock(Blocks.OBSIDIAN)));
+            if (stuck) {
+                if (curObbyCount < obsidianCount) {
+                    stuck = false;
+                    stuckCheckTimer.reset();
+                    obsidianCount = curObbyCount;
+                } else {
+                    return;
+                }
+            } else if (stuckCheckTimer.passed(StuckCheckTime.getValue() * 1000f)) {
+                if (curObbyCount == obsidianCount) {
+                    SendMessage(String.format("We are stuck. Pausing AutoBuilder until obsidian count decreases. Current count: %d", obsidianCount));
+                    stuck = true;
+                    return;
+                } else {
+                    stuckCheckTimer.reset();
+                    obsidianCount = curObbyCount;
+                }
+            }
         }
         
         timer.reset();
@@ -1194,5 +1225,22 @@ public class AutoBuilderModule extends Module
         }
         
         return true;
+    }
+
+    private int getItemCountInventory(int itemId) {
+        int count = 0;
+        for (int i = 0; i < 36; i++) {
+            ItemStack stack = mc.player.inventory.mainInventory.get(i);
+            if (Item.getIdFromItem(stack.getItem()) == itemId) {
+                if (itemId == 0) {
+                    // We're counting air slots
+                    count++;
+                } else {
+                    count += stack.getCount();
+                }
+            }
+        }
+
+        return count;
     }
 }
