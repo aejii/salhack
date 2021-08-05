@@ -1,9 +1,5 @@
 package me.ionar.salhack.module.movement;
 
-import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.network.play.client.CPacketPlayerDigging.Action;
-import net.minecraft.util.EnumFacing;
-import org.lwjgl.input.Keyboard;
 import me.ionar.salhack.events.client.EventClientTick;
 import me.ionar.salhack.events.network.EventNetworkPostPacketEvent;
 import me.ionar.salhack.events.player.EventPlayerUpdateMoveState;
@@ -13,16 +9,23 @@ import me.ionar.salhack.module.Value;
 import me.ionar.salhack.util.entity.PlayerUtil;
 import me.zero.alpine.fork.listener.EventHandler;
 import me.zero.alpine.fork.listener.Listener;
+import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemShield;
+import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
+import net.minecraft.network.play.client.CPacketPlayerDigging.Action;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import org.lwjgl.input.Keyboard;
 
 public final class NoSlowModule extends Module
 {
     public final Value<Boolean> InventoryMove = new Value<Boolean>("InventoryMove", new String[]
     { "InvMove", "InventoryMove", "GUIMove" }, "Allows you to move while guis are open", true);
+    public final Value<Boolean> MoveOnChat = new Value<>("MoveOnChat", new String[]
+    { "MoveOnChat"}, "Allow inventory move when chat is open", false);
     public final Value<Boolean> OnlyOnCustom = new Value<Boolean>("OnlyOnCustom", new String[]
     { "Custom" }, "Only inventory move on custom GUIs", true);
     public final Value<Boolean> items = new Value<Boolean>("Items", new String[]
@@ -51,6 +54,10 @@ public final class NoSlowModule extends Module
     {
         if (InventoryMove.getValue() && mc.currentScreen != null)
         {
+            if (!MoveOnChat.getValue() && mc.currentScreen instanceof GuiChat) {
+                return;
+            }
+
             if (OnlyOnCustom.getValue())
             {
                 if (!(mc.currentScreen instanceof SalGuiScreen))
