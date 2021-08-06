@@ -7,6 +7,7 @@ import me.ionar.salhack.events.render.RenderEvent;
 import me.ionar.salhack.module.Module;
 import me.ionar.salhack.module.Value;
 import me.ionar.salhack.util.Timer;
+import me.ionar.salhack.util.entity.PlayerUtil;
 import me.ionar.salhack.util.render.RenderUtil;
 import me.zero.alpine.fork.listener.EventHandler;
 import me.zero.alpine.fork.listener.Listener;
@@ -16,6 +17,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
@@ -32,6 +34,7 @@ public class InstantMineModule extends Module
     public final Value<Boolean> AutoBreak = new Value<Boolean>("Auto Break", new String[] {""}, "Automatically mines selected block", true);
     public final Value<Float> Delay = new Value<Float>("Delay", new String[] {"Delay"}, "Delay of the mining in ms", 20f, 0.0f, 500.0f, 1f);
     public final Value<Boolean> PicOnly = new Value<Boolean>("Pickaxe Only", new String[] {""}, "Only mines when holding a pickaxe", true);
+    public final Value<Boolean> OffhandEChest = new Value<>("Offhand EChest", new String[] {""}, "Automatically put EChests into empty offhand", false);
 
 
     private ICamera camera = new Frustum();
@@ -114,6 +117,12 @@ public class InstantMineModule extends Module
     {
         if (renderBlock == null) {
             return;
+        }
+
+        if (OffhandEChest.getValue() && mc.player.inventory.offHandInventory.get(0).isEmpty()) {
+            int eChestSlot = PlayerUtil.GetItemSlot(Item.getIdFromItem(Item.getItemFromBlock(Blocks.ENDER_CHEST)));
+            if (eChestSlot != -1)
+                PlayerUtil.MoveToOffhand(eChestSlot);
         }
 
         if (AutoBreak.getValue() && breakTimer.passed(Delay.getValue())) {

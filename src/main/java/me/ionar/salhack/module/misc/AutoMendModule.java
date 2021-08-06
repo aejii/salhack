@@ -3,6 +3,7 @@ package me.ionar.salhack.module.misc;
 import me.ionar.salhack.events.MinecraftEvent;
 import me.ionar.salhack.events.player.EventPlayerMotionUpdate;
 import me.ionar.salhack.module.Module;
+import me.ionar.salhack.util.entity.PlayerUtil;
 import me.zero.alpine.fork.listener.EventHandler;
 import me.zero.alpine.fork.listener.Listener;
 import net.minecraft.enchantment.Enchantment;
@@ -41,24 +42,6 @@ public class AutoMendModule extends Module {
                 && hasEnchant(stack, Enchantments.MENDING);
     }
 
-    private void swapOffhand(int slot) {
-        mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
-        mc.playerController.windowClick(0, slot < 9 ? slot + 36 : slot, 0, ClickType.PICKUP, mc.player);
-        mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
-        mc.playerController.updateController();
-    }
-
-    private int getItemSlot(int itemId) {
-        for (int i = 0; i < 36; i++) {
-            ItemStack stack = mc.player.inventory.mainInventory.get(i);
-            if (Item.getIdFromItem(stack.getItem()) == itemId) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
     @EventHandler
     private Listener<EventPlayerMotionUpdate> OnPlayerUpdate = new Listener<>(p_Event ->
     {
@@ -88,7 +71,7 @@ public class AutoMendModule extends Module {
         if (bestSlot != -1) {
             // Put items on cursor into first air slot
             if (!mc.player.inventory.getItemStack().isEmpty() && mc.player.openContainer == mc.player.inventoryContainer) {
-                int emptySlot = getItemSlot(Item.getIdFromItem(Items.AIR));
+                int emptySlot = PlayerUtil.GetItemSlot(Item.getIdFromItem(Items.AIR));
                 if (emptySlot != -1) {
                     if (emptySlot <= 8) {
                         // Fix slot id if it's a hotbar slot
@@ -99,7 +82,7 @@ public class AutoMendModule extends Module {
                     return;
                 }
             }
-            swapOffhand(bestSlot);
+            PlayerUtil.SwapOffhand(bestSlot);
         }
         });
 }

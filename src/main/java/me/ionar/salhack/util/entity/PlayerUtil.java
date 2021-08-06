@@ -1,18 +1,12 @@
 package me.ionar.salhack.util.entity;
 
-import java.text.DecimalFormat;
-
-import me.ionar.salhack.util.Hole.HoleTypes;
-import net.minecraft.block.BlockHopper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.ClickType;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemAppleGold;
 import net.minecraft.item.ItemFood;
-import net.minecraft.item.ItemShulkerBox;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
@@ -20,6 +14,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+
+import java.text.DecimalFormat;
 
 public class PlayerUtil
 {
@@ -69,6 +65,39 @@ public class PlayerUtil
             }
         }
         return -1;
+    }
+
+    public static int GetItemSlot(int itemId) {
+        if (mc.player == null)
+            return -1;
+
+        for (int i = 0; i < 36; i++) {
+            ItemStack stack = mc.player.inventory.mainInventory.get(i);
+            if (Item.getIdFromItem(stack.getItem()) == itemId) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public static void SwapOffhand(int slot) {
+        if (mc.player == null)
+            return;
+
+        mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
+        mc.playerController.windowClick(0, slot < 9 ? slot + 36 : slot, 0, ClickType.PICKUP, mc.player);
+        mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
+        mc.playerController.updateController();
+    }
+
+    public static void MoveToOffhand(int slot) {
+        if (mc.player == null)
+            return;
+
+        mc.playerController.windowClick(0, slot < 9 ? slot + 36 : slot, 0, ClickType.PICKUP, mc.player);
+        mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
+        mc.playerController.updateController();
     }
     
     public static int GetItemSlotNotHotbar(Item input)
