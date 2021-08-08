@@ -1,15 +1,14 @@
 package me.ionar.salhack.managers;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import me.ionar.salhack.command.Command;
 import me.ionar.salhack.command.impl.*;
 import me.ionar.salhack.command.util.ModuleCommandListener;
 import me.ionar.salhack.main.SalHack;
-import me.ionar.salhack.module.Module;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CommandManager
 {
@@ -31,6 +30,7 @@ public class CommandManager
         Commands.add(new FontCommand());
         Commands.add(new PresetsCommand());
         Commands.add(new WaypointCommand());
+        Commands.add(new AutoMendCommand());
         
         ModuleManager.Get().GetModuleList().forEach(p_Mod ->
         {
@@ -88,7 +88,7 @@ public class CommandManager
         Commands.sort(Comparator.comparing(Command::GetName));
     }
     
-    private ArrayList<Command> Commands = new ArrayList<Command>();
+    private ArrayList<Command> Commands = new ArrayList<>();
     
     public final ArrayList<Command> GetCommands()
     {

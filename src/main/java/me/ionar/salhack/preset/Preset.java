@@ -1,5 +1,11 @@
 package me.ionar.salhack.preset;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import me.ionar.salhack.managers.ModuleManager;
+import me.ionar.salhack.module.Module;
+import me.ionar.salhack.module.Value;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -7,18 +13,10 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import me.ionar.salhack.managers.ModuleManager;
-import me.ionar.salhack.module.Module;
-import me.ionar.salhack.module.Value;
 
 public class Preset
 {
@@ -33,10 +31,7 @@ public class Preset
     
     public void initNewPreset()
     {
-        ModuleManager.Get().GetModuleList().forEach(mod ->
-        {
-            addModuleSettings(mod);
-        });
+        ModuleManager.Get().GetModuleList().forEach(this::addModuleSettings);
     }
     
     public void addModuleSettings(final Module mod)
@@ -79,10 +74,9 @@ public class Preset
                 String key = (String) entry.getKey();
                 String val = (String) entry.getValue();
                 
-                if (key == "displayName")
+                if (key.equals("displayName"))
                 {
                     _displayName = val;
-                    continue;
                 }
             }
 
@@ -169,8 +163,8 @@ public class Preset
                 
                 for (Entry<String, String> value : entry.getValue().entrySet())
                 {
-                    String key = (String)value.getKey();
-                    String val = (String)value.getValue();
+                    String key = value.getKey();
+                    String val = value.getValue();
                     
                     map.put(key, val);
                 }
@@ -201,12 +195,12 @@ public class Preset
 
     public void initValuesForMod(Module mod)
     {
-        if (_valueListMods.containsKey(mod.getDisplayName().toString()))
+        if (_valueListMods.containsKey(mod.getDisplayName()))
         {
-            for (Entry<String, String> value : _valueListMods.get(mod.getDisplayName().toString()).entrySet())
+            for (Entry<String, String> value : _valueListMods.get(mod.getDisplayName()).entrySet())
             {
-                String l_Key = (String)value.getKey();
-                String l_Value = (String)value.getValue();
+                String l_Key = value.getKey();
+                String l_Value = value.getValue();
              
                 if (l_Key.equalsIgnoreCase("enabled"))
                 {
@@ -240,7 +234,7 @@ public class Preset
                 
                 for (Value l_Val : mod.valueList)
                 {
-                    if (l_Val.getName().equalsIgnoreCase((String) value.getKey()))
+                    if (l_Val.getName().equalsIgnoreCase(value.getKey()))
                     {
                         if (l_Val.getValue() instanceof Number && !(l_Val.getValue() instanceof Enum))
                         {
@@ -264,6 +258,10 @@ public class Preset
                         }
                         else if (l_Val.getValue() instanceof String)
                             l_Val.SetForcedValue(l_Value);
+                        else if (l_Val.getValue() instanceof Set) {
+                            String[] ejectArray = Arrays.stream(l_Value.substring(1, l_Value.length() - 1).split(",")).toArray(String[]::new);
+                            l_Val.SetForcedValue(new HashSet<>(Arrays.asList(ejectArray)));
+                        }
                         
                         break;
                     }
