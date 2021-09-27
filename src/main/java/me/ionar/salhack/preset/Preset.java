@@ -259,8 +259,9 @@ public class Preset
                         else if (l_Val.getValue() instanceof String)
                             l_Val.SetForcedValue(l_Value);
                         else if (l_Val.getValue() instanceof Set) {
-                            String[] ejectArray = Arrays.stream(l_Value.substring(1, l_Value.length() - 1).split(",")).toArray(String[]::new);
-                            l_Val.SetForcedValue(new HashSet<>(Arrays.asList(ejectArray)));
+                            String[] ourArray = Arrays.stream(l_Value.substring(1, l_Value.length() - 1).split(",")).toArray(String[]::new);
+                            Arrays.stream(ourArray).map(String::trim).toArray(tempArray -> ourArray);
+                            l_Val.SetForcedValue(new HashSet<>(Arrays.asList(ourArray)));
                         }
                         
                         break;
