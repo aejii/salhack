@@ -80,6 +80,7 @@ public class ModuleManager
 
         /// Misc
         Add(new AntiAFKModule());
+        Add(new AutoAggroModule());
         Add(new AutoBonemealModule());
         Add(new AutoEatModule());
         Add(new AutoDyeModule());
