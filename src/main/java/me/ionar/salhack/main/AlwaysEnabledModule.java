@@ -67,6 +67,7 @@ public class AlwaysEnabledModule implements Listenable
                         {
                             new Thread(() ->
                             {
+                                UUIDManager.Get().addUuid(playerData.getProfile().getId().toString(), playerData.getProfile().getName());
                                 final String name = UUIDManager.Get().resolveName(playerData.getProfile().getId().toString());
                                 if (name != null)
                                     SalHackMod.EVENT_BUS.post(new EventPlayerJoin(name, playerData.getProfile().getId().toString()));
@@ -82,6 +83,7 @@ public class AlwaysEnabledModule implements Listenable
                         {
                             new Thread(() ->
                             {
+                                UUIDManager.Get().addUuid(playerData.getProfile().getId().toString(), playerData.getProfile().getName());
                                 final String name = UUIDManager.Get().resolveName(playerData.getProfile().getId().toString());
                                 if (name != null)
                                     SalHackMod.EVENT_BUS.post(new EventPlayerLeave(name, playerData.getProfile().getId().toString()));

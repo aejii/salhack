@@ -1,5 +1,6 @@
 package me.ionar.salhack.managers;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -21,6 +22,13 @@ public class UUIDManager
     
     private final Map<String, String> uuidNameCache = Maps.newConcurrentMap();
 
+    public void addUuid(String uuid, String name) {
+        uuid = uuid.replace("-", "");
+        if (!uuidNameCache.containsKey(uuid)) {
+            uuidNameCache.put(uuid, name);
+        }
+    }
+
     public String resolveName(String uuid)
     {
         uuid = uuid.replace("-", "");
@@ -32,7 +40,7 @@ public class UUIDManager
         final String url = "https://api.mojang.com/user/profiles/" + uuid + "/names";
         try
         {
-            final String nameJson = IOUtils.toString(new URL(url), "UTF-8");
+            final String nameJson = IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
             if (nameJson != null && nameJson.length() > 0)
             {
                 JsonParser parser = new JsonParser();
