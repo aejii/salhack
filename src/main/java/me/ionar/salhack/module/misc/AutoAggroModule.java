@@ -70,7 +70,7 @@ public class AutoAggroModule extends Module {
             }
 
             if (toAttack != null && closestDist <= MaxAttackDistance.getValue()) {
-                SendMessage(String.format("Attacking child. Distance: %d", closestDist));
+                SendMessage(String.format("Attacking child. Distance: %f", closestDist));
                 mc.player.connection.sendPacket(new CPacketUseEntity(toAttack));
                 mc.player.swingArm(EnumHand.MAIN_HAND);
                 mc.player.resetCooldown();
