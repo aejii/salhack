@@ -34,6 +34,7 @@ public class AutoMendModule extends Module {
 
     private Timer swapTimer = new Timer();
     private int currentDurability = 0;
+    private int ticks = 0;
 
     @Override
     public void onEnable() {
@@ -88,11 +89,34 @@ public class AutoMendModule extends Module {
             return;
         }
 
-        if (!mc.player.inventory.getItemStack().isEmpty() && mc.player.inventory.getItemStack().getItem().getRegistryName() != null &&
-                EjectItems.getValue().contains(mc.player.inventory.getItemStack().getItem().getRegistryName().toString())) {
-            SendMessage(String.format("Ejecting %s as it's on our cursor and in the EjectItems list.", mc.player.inventory.getItemStack().getDisplayName()));
-            mc.playerController.windowClick(mc.player.inventoryContainer.windowId, -999, 0, ClickType.PICKUP, mc.player);
-            mc.playerController.updateController();
+        if (ticks++ < 20) {
+            return;
+        }
+        ticks = 0;
+
+        if (!mc.player.inventory.getItemStack().isEmpty()) {
+            if (mc.player.inventory.getItemStack().getItem().getRegistryName() != null &&
+                    EjectItems.getValue().contains(mc.player.inventory.getItemStack().getItem().getRegistryName().toString())) {
+                SendMessage(String.format("Ejecting %s as it's on our cursor and in the EjectItems list.", mc.player.inventory.getItemStack().getDisplayName()));
+                mc.playerController.windowClick(mc.player.inventoryContainer.windowId, -999, 0, ClickType.PICKUP, mc.player);
+                mc.playerController.updateController();
+            } else {
+                int slot = PlayerUtil.GetItemSlot(Item.getIdFromItem(Items.AIR));
+                if (slot == -1) {
+                    for (int i = 0; i < 36; i++) {
+                        ItemStack stack = mc.player.inventory.mainInventory.get(i);
+                        if (stack.getItem().getRegistryName() != null && EjectItems.getValue().contains(stack.getItem().getRegistryName().toString())) {
+                            slot = i;
+                            break;
+                        }
+                    }
+                }
+                if (slot != -1) {
+                    SendMessage(String.format("Placing %s into slot %d.", mc.player.inventory.getItemStack().getDisplayName(), slot));
+                    mc.playerController.windowClick(mc.player.inventoryContainer.windowId, slot < 9 ? slot + 36 : slot, 0, ClickType.PICKUP, mc.player);
+                    mc.playerController.updateController();
+                }
+            }
             return;
         }
 
@@ -141,5 +165,5 @@ public class AutoMendModule extends Module {
             }
             PlayerUtil.SwapOffhand(bestSlot);
         }
-        });
+    });
 }
