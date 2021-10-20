@@ -67,7 +67,6 @@ public class ModuleManager
         /// Exploit
         Add(new AntiHungerModule());
         Add(new CoordTPExploitModule());
-        Add(new CrashExploitModule());
         Add(new EntityDesyncModule());
         Add(new LiquidInteractModule());
         Add(new MountBypassModule());
