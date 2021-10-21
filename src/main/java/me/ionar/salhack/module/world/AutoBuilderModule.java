@@ -165,7 +165,7 @@ public class AutoBuilderModule extends Module
         if (PauseOnStuck.getValue()) {
             int curObbyCount = getItemCountInventory(Item.getIdFromItem(Item.getItemFromBlock(Blocks.OBSIDIAN)));
             if (stuck) {
-                if (curObbyCount < obsidianCount) {
+                if (curObbyCount != obsidianCount) {
                     stuck = false;
                     stuckCheckTimer.reset();
                     obsidianCount = curObbyCount;
@@ -174,7 +174,7 @@ public class AutoBuilderModule extends Module
                 }
             } else if (stuckCheckTimer.passed(StuckCheckTime.getValue() * 1000f)) {
                 if (curObbyCount == obsidianCount) {
-                    SendMessage(String.format("We are stuck. Pausing AutoBuilder until obsidian count decreases. Current count: %d", obsidianCount));
+                    SendMessage(String.format("We are stuck. Pausing AutoBuilder until obsidian count changes. Current count: %d", obsidianCount));
                     stuck = true;
                     return;
                 } else {

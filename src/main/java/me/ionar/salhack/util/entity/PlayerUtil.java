@@ -99,6 +99,16 @@ public class PlayerUtil
         mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
         mc.playerController.updateController();
     }
+
+    public static void SwapWithHotBar(int inInventory, int inHotbar) {
+        if (mc.player == null)
+            return;
+
+        mc.playerController.windowClick(mc.player.inventoryContainer.windowId, inInventory, 0, ClickType.PICKUP, mc.player);
+        mc.playerController.windowClick(mc.player.inventoryContainer.windowId, inHotbar + 36, 0, ClickType.PICKUP, mc.player);
+        mc.playerController.windowClick(mc.player.inventoryContainer.windowId, inInventory, 0, ClickType.PICKUP, mc.player);
+        mc.playerController.updateController();
+    }
     
     public static int GetItemSlotNotHotbar(Item input)
     {
