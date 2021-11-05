@@ -1,37 +1,20 @@
 package me.ionar.salhack.module.world;
 
-import static org.lwjgl.opengl.GL11.GL_LINE_SMOOTH;
-import static org.lwjgl.opengl.GL11.GL_LINE_SMOOTH_HINT;
-import static org.lwjgl.opengl.GL11.GL_NICEST;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glHint;
-import static org.lwjgl.opengl.GL11.glLineWidth;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-
 import me.ionar.salhack.events.MinecraftEvent.Era;
-import me.ionar.salhack.events.client.EventClientTick;
 import me.ionar.salhack.events.player.EventPlayerMotionUpdate;
-import me.ionar.salhack.events.player.EventPlayerUpdate;
 import me.ionar.salhack.events.render.EventRenderLayers;
 import me.ionar.salhack.events.render.RenderEvent;
-import me.ionar.salhack.main.SalHack;
 import me.ionar.salhack.module.Module;
 import me.ionar.salhack.module.Value;
 import me.ionar.salhack.util.BlockInteractionHelper;
 import me.ionar.salhack.util.BlockInteractionHelper.PlaceResult;
-import me.ionar.salhack.util.BlockInteractionHelper.ValidResult;
-import me.zero.alpine.fork.listener.EventHandler;
-import me.zero.alpine.fork.listener.Listener;
 import me.ionar.salhack.util.MathUtil;
 import me.ionar.salhack.util.Pair;
 import me.ionar.salhack.util.Timer;
 import me.ionar.salhack.util.entity.PlayerUtil;
 import me.ionar.salhack.util.render.RenderUtil;
+import me.zero.alpine.fork.listener.EventHandler;
+import me.zero.alpine.fork.listener.Listener;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockObsidian;
 import net.minecraft.block.BlockSlab;
@@ -40,10 +23,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.culling.ICamera;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
@@ -52,7 +36,11 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import org.lwjgl.util.vector.Vector2f;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import static org.lwjgl.opengl.GL11.*;
 
 public class AutoBuilderModule extends Module
 {
@@ -147,13 +135,10 @@ public class AutoBuilderModule extends Module
     @EventHandler
     private Listener<EventPlayerMotionUpdate> OnPlayerUpdate = new Listener<>(p_Event ->
     {
-        if (p_Event.getEra() != Era.PRE)
-            return;
-
-        if (!timer.passed(Delay.getValue() * 1000f))
-            return;
-
-        if (mc.player == null) {
+        if (p_Event.getEra() != Era.PRE ||
+                mc.player == null ||
+                !timer.passed(Delay.getValue() * 1000f) ||
+                !mc.world.getEntitiesWithinAABBExcludingEntity(mc.player, mc.player.getEntityBoundingBox()).isEmpty()) {
             return;
         }
 
@@ -452,7 +437,7 @@ public class AutoBuilderModule extends Module
                 final double dist = mc.player.getDistance(l_Pos.getX() + 0.5f, l_Pos.getY() + 0.5f, l_Pos.getZ() + 0.5f)
                         * 0.75f;
     
-                float alpha = MathUtil.clamp((float) (dist * 255.0f / 5.0f / 255.0f), 0.0f, 0.3f);
+                // float alpha = MathUtil.clamp((float) (dist * 255.0f / 5.0f / 255.0f), 0.0f, 0.3f);
 
                 //  public static void drawBoundingBox(AxisAlignedBB bb, float width, int color)
                 
