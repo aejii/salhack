@@ -26,9 +26,10 @@ public class AutoMendCommand extends Command {
 
         if (autoMendModule != null)
         {
-            if (l_Split[1].equalsIgnoreCase("addEject") || l_Split[1].equalsIgnoreCase("removeEject")) {
+            if (l_Split[1].equalsIgnoreCase("addEject") || l_Split[1].equalsIgnoreCase("removeEject")
+                    || l_Split[1].equalsIgnoreCase("addWhitelist") || l_Split[1].equalsIgnoreCase("removeWhitelist")) {
                 if (l_Split.length <= 2) {
-                    SendToChat(String.format("Not enough arguments for addEject. Example command: AutoMend %s netherrack", l_Split[1]));
+                    SendToChat(String.format("Not enough arguments for %s. Example command: AutoMend %s netherrack", l_Split[1], l_Split[1]));
                     return;
                 }
 
@@ -55,6 +56,18 @@ public class AutoMendCommand extends Command {
                         SendToChat(String.format("Successfully removed %s from the ejection list.", itemString));
                     } else {
                         SendToChat(String.format("Error removing %s from the ejection list. %s", itemString, autoMendModule.containsEjectItem(itemString) ? "" : "Doesn't exist in the list."));
+                    }
+                } else if (l_Split[1].equalsIgnoreCase("addWhitelist")) {
+                    if (autoMendModule.addWhitelistItem(itemString)) {
+                        SendToChat(String.format("Successfully added %s to the whitelist.", itemString));
+                    } else {
+                        SendToChat(String.format("Error adding %s to the whitelist. %s", itemString, autoMendModule.containsWhitelistItem(itemString) ? "Already exists in the list." : ""));
+                    }
+                } else if (l_Split[1].equalsIgnoreCase("removeWhitelist")) {
+                    if (autoMendModule.removeWhitelistItem(itemString)) {
+                        SendToChat(String.format("Successfully removed %s from the whitelist.", itemString));
+                    } else {
+                        SendToChat(String.format("Error removing %s from the whitelist. %s", itemString, autoMendModule.containsWhitelistItem(itemString) ? "" : "Doesn't exist in the list."));
                     }
                 }
             }

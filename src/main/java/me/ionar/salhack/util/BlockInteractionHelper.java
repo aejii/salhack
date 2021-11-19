@@ -106,7 +106,7 @@ public class BlockInteractionHelper
         Minecraft.getMinecraft().player.connection.sendPacket(new CPacketPlayer.Rotation(rotations[0], rotations[1], Minecraft.getMinecraft().player.onGround));
     }
 
-    private static void processRightClickBlock(BlockPos pos, EnumFacing side, Vec3d hitVec)
+    public static void processRightClickBlock(BlockPos pos, EnumFacing side, Vec3d hitVec)
     {
         getPlayerController().processRightClickBlock(Minecraft.getMinecraft().player, mc.world, pos, side, hitVec, EnumHand.MAIN_HAND);
     }
