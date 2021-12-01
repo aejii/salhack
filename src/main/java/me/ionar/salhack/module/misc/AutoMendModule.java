@@ -27,6 +27,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.TextComponentString;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -45,6 +46,7 @@ public class AutoMendModule extends Module {
     public final Value<Boolean> Whitelist = new Value<>("Whitelist", new String[] {""}, "If enabled will only use items in WhiteListItems", false);
     public final Value<Set<String>> WhitelistItems = new Value<>("WhiteListItems", new String[] {""}, "Only items in this list will be counted when looking for mendable items", new HashSet<>());
     public final Value<Set<String>> EjectItems = new Value<>("EjectItems", new String[] {""}, "If an item in this list is on the cursor it will be dropped", new HashSet<>());
+    public final Value<Directions> LookDirection = new Value<>("LookDirection", new String[] {""}, "Direction to look at. Helps with AutoAggro and opening shulkers", Directions.None);
 
     public AutoMendModule() {
         super("AutoMend", new String[]
@@ -59,14 +61,20 @@ public class AutoMendModule extends Module {
     private boolean storeShulkerFull = false;
 
     private enum Modes {
-        Offhand, Hotbar
+        Offhand, Hotbar,
     }
 
     private enum Shulkers {
         Black, Blue, Brown, Cyan,
         Gray, Green, LightBlue, Lime,
         Magenta, Orange, Pink, Purple,
-        Red, Silver, White, Yellow
+        Red, Silver, White, Yellow,
+    }
+
+    private enum Directions {
+        South, SouthWest, West,
+        NorthWest, North, NorthEast,
+        East, SouthEast, None,
     }
 
     private enum States {
@@ -203,6 +211,38 @@ public class AutoMendModule extends Module {
         return -1;
     }
 
+    private void lookAtDirection(Directions direction) {
+        switch (direction) {
+            case South:
+                mc.player.rotationYaw = 0.0f;
+                break;
+            case SouthWest:
+                mc.player.rotationYaw = 45.0f;
+                break;
+            case West:
+                mc.player.rotationYaw = 90.0f;
+                break;
+            case NorthWest:
+                mc.player.rotationYaw = 135.0f;
+                break;
+            case North:
+                mc.player.rotationYaw = 180.0f;
+                break;
+            case NorthEast:
+                mc.player.rotationYaw = 225.0f;
+                break;
+            case East:
+                mc.player.rotationYaw = 270.0f;
+                break;
+            case SouthEast:
+                mc.player.rotationYaw = 315.0f;
+                break;
+            case None:
+            default:
+                break;
+        }
+    }
+
     private EnumDyeColor getDyeColor(Shulkers shulkerColor) {
         switch (shulkerColor) {
             case Black:
@@ -260,12 +300,15 @@ public class AutoMendModule extends Module {
 
     private void openShulker(Shulkers shulkerColor) {
         BlockPos closestShulker = getClosestShulker(getDyeColor(shulkerColor));
-        if (closestShulker == null || mc.player.getDistance(closestShulker.getX(), closestShulker.getY(), closestShulker.getZ()) > mc.playerController.getBlockReachDistance()) {
+        if (closestShulker == null || mc.player.getDistanceSq(closestShulker) > Math.pow(mc.playerController.getBlockReachDistance() + 1.0, 2)) {
             SendMessage(String.format("No valid %s shulker found", shulkerColor));
             return;
         }
 
         Vec3d shulkerVec = new Vec3d(closestShulker);
+        float[] rotations = BlockInteractionHelper.getLegitRotations(shulkerVec);
+        mc.player.rotationYaw = rotations[0];
+        mc.player.rotationPitch = rotations[1];
         BlockInteractionHelper.faceVectorPacketInstant(shulkerVec);
         BlockInteractionHelper.processRightClickBlock(closestShulker, EnumFacing.UP, shulkerVec);
         mc.player.swingArm(EnumHand.MAIN_HAND);
@@ -312,6 +355,7 @@ public class AutoMendModule extends Module {
             return;
         }
         ticks = 0;
+        lookAtDirection(LookDirection.getValue());
 
         switch (state) {
             case Mending: {
@@ -363,6 +407,8 @@ public class AutoMendModule extends Module {
                                 int bestSlot = getBestSlot();
                                 if (bestSlot != -1) {
                                     PlayerUtil.SwapOffhand(bestSlot);
+                                } else {
+                                    mc.player.connection.getNetworkManager().closeChannel(new TextComponentString("Best slot is invalid. Reconnect"));
                                 }
                             }
                             break;
@@ -373,7 +419,9 @@ public class AutoMendModule extends Module {
                             if (doSwap || !currentStack.isItemDamaged() || currentStack.isEmpty()) {
                                 int bestSlot = getBestSlot();
                                 if (bestSlot != -1) {
-                                    if (bestSlot < 9) {
+                                    if (bestSlot == mc.player.inventory.currentItem) {
+                                        mc.player.connection.getNetworkManager().closeChannel(new TextComponentString("Best slot is current slot. Reconnect"));
+                                    } else if (bestSlot < 9) {
                                         mc.player.inventory.currentItem = bestSlot;
                                     } else {
                                         PlayerUtil.SwapWithHotBar(bestSlot, HotBarSlot.getValue());
