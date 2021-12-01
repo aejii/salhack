@@ -42,6 +42,7 @@ public class HudManager
         Add(new TimeComponent());
         Add(new TPSComponent());
         Add(new FPSComponent());
+        Add(new ScoreComponent());
         Add(new DirectionComponent());
         Add(new TooltipComponent());
         Add(new ArmorComponent());
