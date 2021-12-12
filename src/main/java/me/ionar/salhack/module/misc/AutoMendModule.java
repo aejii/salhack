@@ -39,6 +39,7 @@ public class AutoMendModule extends Module {
     public final Value<Integer> HotBarSlot = new Value<>("HotBarSlot", new String[] {""}, "Hotbar slot to use when using Hotbar mode", 7, 0, 8, 1);
     public final Value<Boolean> SwapOnTimer = new Value<>("SwapOnTimer", new String[] {""}, "Swap to another mendable item if the item durability hasn't changed in the set time", true);
     public final Value<Float> SwapTime = new Value<>("SwapTime", new String[] {""}, "If item hasn't changed durability for set seconds a swap will occur", 30.0f, 0.0f, 300.0f, 1.0f);
+    public final Value<Integer> DelayTime = new Value<>("DelayTime", new String[] {""}, "Delay in ticks between actions", 20, 1, 100, 1);
     public final Value<Boolean> AutoLootStore = new Value<>("AutoLootStore", new String[] {""}, "If enabled will automatically get items to repair and store fully repaired items", false);
     public final Value<Shulkers> LootShulker = new Value<>("LootShulker", new String[] {""}, "Color of shulker to loot items to repair from", Shulkers.White);
     public final Value<Shulkers> StoreShulker = new Value<>("StoreShulker", new String[] {""}, "Color of shulker to store repaired items in", Shulkers.Black);
@@ -46,7 +47,6 @@ public class AutoMendModule extends Module {
     public final Value<Boolean> Whitelist = new Value<>("Whitelist", new String[] {""}, "If enabled will only use items in WhiteListItems", false);
     public final Value<Set<String>> WhitelistItems = new Value<>("WhiteListItems", new String[] {""}, "Only items in this list will be counted when looking for mendable items", new HashSet<>());
     public final Value<Set<String>> EjectItems = new Value<>("EjectItems", new String[] {""}, "If an item in this list is on the cursor it will be dropped", new HashSet<>());
-    public final Value<Directions> LookDirection = new Value<>("LookDirection", new String[] {""}, "Direction to look at. Helps with AutoAggro and opening shulkers", Directions.None);
 
     public AutoMendModule() {
         super("AutoMend", new String[]
@@ -54,7 +54,7 @@ public class AutoMendModule extends Module {
     }
 
     private States state = States.Mending;
-    private Timer swapTimer = new Timer();
+    private final Timer swapTimer = new Timer();
     private int currentDurability = 0;
     private int ticks = 0;
     private boolean lootShulkerEmpty = false;
@@ -69,12 +69,6 @@ public class AutoMendModule extends Module {
         Gray, Green, LightBlue, Lime,
         Magenta, Orange, Pink, Purple,
         Red, Silver, White, Yellow,
-    }
-
-    private enum Directions {
-        South, SouthWest, West,
-        NorthWest, North, NorthEast,
-        East, SouthEast, None,
     }
 
     private enum States {
@@ -211,38 +205,6 @@ public class AutoMendModule extends Module {
         return -1;
     }
 
-    private void lookAtDirection(Directions direction) {
-        switch (direction) {
-            case South:
-                mc.player.rotationYaw = 0.0f;
-                break;
-            case SouthWest:
-                mc.player.rotationYaw = 45.0f;
-                break;
-            case West:
-                mc.player.rotationYaw = 90.0f;
-                break;
-            case NorthWest:
-                mc.player.rotationYaw = 135.0f;
-                break;
-            case North:
-                mc.player.rotationYaw = 180.0f;
-                break;
-            case NorthEast:
-                mc.player.rotationYaw = 225.0f;
-                break;
-            case East:
-                mc.player.rotationYaw = 270.0f;
-                break;
-            case SouthEast:
-                mc.player.rotationYaw = 315.0f;
-                break;
-            case None:
-            default:
-                break;
-        }
-    }
-
     private EnumDyeColor getDyeColor(Shulkers shulkerColor) {
         switch (shulkerColor) {
             case Black:
@@ -351,11 +313,10 @@ public class AutoMendModule extends Module {
             return;
         }
 
-        if (ticks++ < 20) {
+        if (ticks++ < DelayTime.getValue()) {
             return;
         }
         ticks = 0;
-        lookAtDirection(LookDirection.getValue());
 
         switch (state) {
             case Mending: {
