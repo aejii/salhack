@@ -1,119 +1,85 @@
+version project.modVersion
+group project.modGroup
+
 buildscript {
     repositories {
         mavenCentral()
-        jcenter()
-        maven {
-            name = 'gradle plugins'
-            url "https://plugins.gradle.org/m2/"
-        }
-        maven {
-            name = 'forge'
-            url = 'http://files.minecraftforge.net/maven'
-        }
-        maven {
-            name = 'SpongePowered'
-            url = 'https://repo.spongepowered.org/maven'
-        }
-        maven {
-            name = 'sonatype'
-            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
-        }
+        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
-        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:4.+'
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:6.1.0'
         classpath 'com.google.code.gson:gson:2.8.6'
-        classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.0.9'
     }
 }
 
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'com.matthewprenger.cursegradle'
 
-version project.modVersion
-group project.modGroup // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-
-sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
-}
-
-minecraft {
-    version = project.forgeVersion
-    runDir = 'run'
-    mappings = project.mcpVersion
-    coreMod = 'me.ionar.salhack.mixin.MixinLoaderForge'
-    makeObfSourceJar = false
-
-    replaceIn 'reference/Reference.java'
-    replace '${version}', project.version
-    replace '${mcversion}', project.minecraft.version
-    replace '${modVersion}', project.modVersion
-    replace '${version_minecraft}', project.version_minecraft
-    replace '${version_lunatriuscore}', project.version_lunatriuscore
-    replace '${version_schematica}', project.version_schematica
-    replace '${forgeVersion}', project.forgeVersion
+    options.encoding = 'UTF-8'
 }
 
 repositories {
-    maven {
-        name = 'spongepowered-repo'
-        url = 'https://repo.spongepowered.org/maven/'
+    maven { url = 'https://repo.spongepowered.org/maven/' }
+    maven { url = 'https://impactdevelopment.github.io/maven/' }
+    maven { url = "https://jitpack.io" }
+}
+
+minecraft {
+    mappings channel: "$project.mcpChannel", version: "$project.mcpVersion"
+    accessTransformer = file('src/main/resources/salhack_at.cfg')
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            property 'fml.coreMods.load', 'me.ionar.salhack.mixin.MixinLoaderForge'
+            property 'mixin.env.disableRefMap', 'true' // Disable refmap so we don't get trolled by Baritone
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+        }
     }
-    maven {
-        name = 'impactdevelopment-repo'
-        url = 'https://impactdevelopment.github.io/maven/'
-    }
-    maven {
-        name = 'swt-repo'
-        url = "http://maven-eclipse.github.io/maven"
-    }
-    maven {
-        name = "jitpack.io"
-        url = "https://jitpack.io"
-    }
-    mavenCentral()
-    jcenter()
 }
 
 dependencies {
+    minecraft "net.minecraftforge:forge:$project.minecraftVersion-$project.forgeVersion"
     //mixin needs to be distributed with the mod, very important
     compile("org.spongepowered:mixin:0.7.11-SNAPSHOT") { // do NOT update this to 8.0 or above, it breaks compatibility with future client
         exclude module: 'launchwrapper'
         exclude module: 'guava'
         exclude module: 'commons-io'
+        exclude module: 'log4j-core'
+    }
+    annotationProcessor('org.spongepowered:mixin:0.8.2:processor') {
+        exclude module: 'gson'
     }
     compile "com.github.ionar2:Alpine:1.9f"
     compile group: 'net.jodah', name: 'typetools', version: '0.5.0'
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.19'
-    compile(group: 'org.reflections', name: 'reflections', version: '0.9.11') {
+    compile(group: 'org.reflections', name: 'reflections', version: '0.10.2') {
         exclude group: 'com.google.guava', module: 'guava'
     }
+}
 
-    //deobfCompile group: group, name: 'LunatriusCore', version: "${project.version_minecraft}-${project.version_lunatriuscore}", classifier: 'universal'
+mixin {
+    defaultObfuscationEnv 'searge'
+    add sourceSets.main, 'mixins.salhack.refmap.json'
 }
 
 processResources {
     // this will ensure that this task is redone when the versions change.
     inputs.property 'version', project.version
-    inputs.property 'mcversion', project.minecraft.version
+    inputs.property 'mcversion', project.minecraftVersion
 
-    // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-
-        // replace version and mcversion and much more
-        expand 'version': project.version,
-        'mcversion': project.minecraft.version,
-        'modVersion': project.modVersion,
-        'version_minecraft': project.version_minecraft,
-        'version_lunatriuscore': project.version_lunatriuscore,
-        'version_schematica': project.version_schematica,
-        'forgeVersion': project.forgeVersion
-
+        expand 'version': project.version, 'mcversion': project.minecraftVersion, 'version_lunatriuscore': project.version_lunatriuscore, 'version_schematica': project.version_schematica
     }
 
     // copy everything else, thats not the mcmod.info
@@ -124,7 +90,6 @@ processResources {
     // move _at.cfg into META-INF
     rename '(.+_at.cfg)', 'META-INF/$1'
 }
-
 
 shadowJar {
     dependencies {
@@ -137,54 +102,26 @@ shadowJar {
     }
     exclude 'dummyThing'
     exclude 'LICENSE.txt'
-    classifier = 'release'
-}
-
-
-mixin {
-    defaultObfuscationEnv searge
-    add sourceSets.main, 'mixins.salhack.refmap.json'
+    archiveClassifier.set("release")
 }
 
 reobf {
     shadowJar {
-        mappingType = 'SEARGE'
         classpath = sourceSets.main.compileClasspath
     }
 }
 
 jar {
-    manifest {
-        attributes(
-                'MixinConfigs': 'mixins.salhack.json',
-                'tweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
-                'TweakOrder': 0,
-                'FMLCorePluginContainsFMLMod': 'true',
-                'FMLCorePlugin': 'me.ionar.salhack.mixin.MixinLoaderForge',
-                'ForceLoadAsMod': 'true',
-                'FMLAT': 'salhack_at.cfg'
-        )
-    }
+    manifest.attributes(
+            'MixinConfigs': 'mixins.salhack.json',
+            'tweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+            'TweakOrder': 0,
+            'FMLCorePluginContainsFMLMod': 'true',
+            'FMLCorePlugin': 'me.ionar.salhack.mixin.MixinLoaderForge',
+            'ForceLoadAsMod': 'true',
+            'FMLAT': 'salhack_at.cfg',
+            'Main-Class': 'me.ionar.salhack.SalHackMod'
+    )
 }
 
-build.dependsOn(shadowJar)
-
-if (project.hasProperty('api_key_curseforge') && project.hasProperty('extra_curseforge_id')) {
-    tasks.curseforge.dependsOn signJars
-    curseforge {
-        apiKey = project.api_key_curseforge
-
-        project {
-            id = project.extra_curseforge_id
-            changelog = ''
-            releaseType = project.hasProperty('extra_curseforge_releasetype') ? project.extra_curseforge_releasetype : 'release'
-
-            addArtifact sourceJar
-            addArtifact apiJar
-
-            relations {
-                requiredLibrary 'lunatriuscore'
-            }
-        }
-    }
-}
+jar.finalizedBy('reobfJar')
