@@ -2,8 +2,11 @@ package me.ionar.salhack.module.misc;
 
 import me.ionar.salhack.events.MinecraftEvent;
 import me.ionar.salhack.events.player.EventPlayerMotionUpdate;
+import me.ionar.salhack.managers.ModuleManager;
 import me.ionar.salhack.module.Module;
 import me.ionar.salhack.module.Value;
+import me.ionar.salhack.module.movement.YawModule;
+import me.ionar.salhack.util.MathUtil;
 import me.ionar.salhack.util.Timer;
 import me.zero.alpine.fork.listener.EventHandler;
 import me.zero.alpine.fork.listener.Listener;
@@ -26,6 +29,7 @@ public class AutoAggroModule extends Module {
     }
 
     private Timer timer = new Timer();
+    private YawModule yawModule;
     private boolean attackingPigmen = false;
     private int ticks = 0;
 
@@ -36,6 +40,10 @@ public class AutoAggroModule extends Module {
         timer.reset();
         attackingPigmen = false;
         ticks = 0;
+
+        if (yawModule == null) {
+            yawModule = (YawModule) ModuleManager.Get().GetMod(YawModule.class);
+        }
     }
 
     @EventHandler
@@ -51,9 +59,11 @@ public class AutoAggroModule extends Module {
                 return;
             }
             ticks = 0;
+            yawModule.setPaused(true);
             if (haveAggroPigman()) {
                 SendMessage("Now have aggro pigman, attacking stopping!");
                 attackingPigmen = false;
+                yawModule.setPaused(false);
                 return;
             }
             // Do attack here
@@ -71,6 +81,9 @@ public class AutoAggroModule extends Module {
 
             if (toAttack != null && closestDist <= MaxAttackDistance.getValue()) {
                 SendMessage(String.format("Attacking child. Distance: %f", closestDist));
+                float[] l_Rotation = MathUtil.calcAngle(mc.player.getPositionEyes(mc.getRenderPartialTicks()), toAttack.getPositionEyes(mc.getRenderPartialTicks()));
+                mc.player.rotationPitch = l_Rotation[1];
+                mc.player.rotationYaw = l_Rotation[0];
                 mc.player.connection.sendPacket(new CPacketUseEntity(toAttack));
                 mc.player.swingArm(EnumHand.MAIN_HAND);
                 mc.player.resetCooldown();

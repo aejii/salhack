@@ -20,6 +20,7 @@ public final class YawModule extends Module
     public final Value<Boolean> Cardinal = new Value<Boolean>("Cardinal", new String[]
     { "C" }, "Locks the yaw to one of the cardinal directions", false);
 
+    private boolean Paused;
     private float Yaw;
     private float Pitch;
 
@@ -56,10 +57,15 @@ public final class YawModule extends Module
         /// override don't trigger on logic, we access player at enable
     }
 
+    public void setPaused(boolean paused)
+    {
+        this.Paused = paused;
+    }
+
     @EventHandler
     private Listener<EventPlayerMotionUpdate> OnPlayerUpdate = new Listener<>(p_Event ->
     {
-        if (p_Event.getEra() != Era.PRE)
+        if (p_Event.getEra() != Era.PRE || this.Paused)
             return;
         
         Entity l_Entity = mc.player.isRiding() ? mc.player.getRidingEntity() : mc.player;
