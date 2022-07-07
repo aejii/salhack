@@ -5,6 +5,7 @@
 [![GitHub contributors](https://img.shields.io/github/contributors/mankool0/salhack.svg)](https://github.com/mankool0/salhack/graphs/contributors/)
 [![Contributions](https://img.shields.io/badge/contributions-unmaintained-lightgray.svg?style=flat)](https://github.com/mankool0/salhack/issues/)
 
+
 ## Salhack
 Salhack is a Forge mod made by ionar. Recently, ionar has made the decision to leave the project, and as such, this project is discontinued without a main developer. 
 
